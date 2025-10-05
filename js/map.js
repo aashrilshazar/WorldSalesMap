@@ -1,5 +1,15 @@
 // Map view functionality
 async function initMap() {
+    if (typeof d3 === 'undefined') {
+        console.warn('D3 library unavailable; map view will be disabled.');
+        return;
+    }
+
+    if (typeof topojson === 'undefined') {
+        console.warn('TopoJSON library unavailable; map view will be disabled.');
+        return;
+    }
+
     const container = $('map-container');
     const width = container.clientWidth;
     const height = container.clientHeight;
@@ -23,9 +33,9 @@ async function initMap() {
     state.mapSvg.call(state.mapZoom);
     
     try {
-        const world = await d3.json('https://unpkg.com/world-atlas@2.0.2/countries-110m.json');
+        const world = await d3.json('data/countries-110m.json');
         const countries = topojson.feature(world, world.objects.countries);
-        
+
         state.mapG.selectAll('path')
             .data(countries.features)
             .join('path')
