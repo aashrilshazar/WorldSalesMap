@@ -18,6 +18,9 @@ let countryFeatures = [];
 let stateFeatures = [];
 let countyFeatures = [];
 
+let renderScheduled = false;
+let forceStaticRender = false;
+
 function isCoordinateVisible(lon, lat) {
     const centerLon = -state.mapRotation.lambda;
     const centerLat = -state.mapRotation.phi;
@@ -91,14 +94,35 @@ function renderStates() {
         .style('opacity', 1);
 }
 
-function renderCounties() {
-    if (!state.mapCounties) return;
-    const shouldShow = isUSVisible() && state.mapZoomTransform?.k >= COUNTY_DISPLAY_ZOOM;
-    state.mapCounties
-        .style('opacity', shouldShow ? 0.6 : 0)
-        .style('pointer-events', 'none')
-        .selectAll('path')
-        .attr('d', pathGenerator);
+function drawStaticLayers(force = false) {
+    const shouldShowCounties = isUSVisible() && state.mapZoomTransform?.k >= COUNTY_DISPLAY_ZOOM;
+    const last = state.lastStaticRender;
+    const lambdaDiff = last.lambda === null ? Infinity : Math.abs(state.mapRotation.lambda - last.lambda);
+    const phiDiff = last.phi === null ? Infinity : Math.abs(state.mapRotation.phi - last.phi);
+    const scaleDiff = last.scale === null ? Infinity : Math.abs(state.mapScale - last.scale);
+    const countiesChanged = last.countiesVisible === null || last.countiesVisible !== shouldShowCounties;
+    const needsUpdate = force || lambdaDiff > 0.5 || phiDiff > 0.5 || (last.scale === null ? true : scaleDiff / Math.max(1, last.scale) > 0.05) || countiesChanged;
+
+    if (needsUpdate) {
+        renderSphere();
+        renderGraticule();
+        renderStates();
+        renderCountries();
+        state.mapCounties
+            .style('pointer-events', 'none')
+            .style('opacity', shouldShowCounties ? 0.6 : 0)
+            .selectAll('path')
+            .attr('d', pathGenerator);
+
+        state.lastStaticRender = {
+            lambda: state.mapRotation.lambda,
+            phi: state.mapRotation.phi,
+            scale: state.mapScale,
+            countiesVisible: shouldShowCounties
+        };
+    } else {
+        state.mapCounties.style('opacity', shouldShowCounties ? 0.6 : 0);
+    }
 }
 
 function renderGraticule() {
@@ -113,9 +137,6 @@ function renderSphere() {
 
 function updateMapBubbles() {
     if (!state.mapBubblesGroup || !state.mapProjection) return;
-
-    renderCountries();
-    renderCounties();
 
     const geocoded = state.firms.filter(f => f.hqLocation && CONFIG.CITY_COORDS[f.hqLocation]);
 
@@ -225,12 +246,22 @@ function updateMapBubbles() {
     groups.exit().remove();
 }
 
-function renderGlobe() {
+function scheduleGlobeRender(forceStatic = false) {
+    if (forceStatic) forceStaticRender = true;
+    if (renderScheduled) return;
+    renderScheduled = true;
+    requestAnimationFrame(() => {
+        renderScheduled = false;
+        const force = forceStaticRender;
+        forceStaticRender = false;
+        renderGlobe(force);
+    });
+}
+
+function renderGlobe(forceStatic = false) {
     if (!state.mapProjection) return;
     updateProjection();
-    renderSphere();
-    renderGraticule();
-    renderStates();
+    drawStaticLayers(forceStatic);
     updateMapBubbles();
 }
 
@@ -248,7 +279,7 @@ function initializeZoom(container) {
         .on('zoom', event => {
             state.mapZoomTransform = event.transform;
             state.mapScale = state.mapBaseScale * event.transform.k;
-            renderGlobe();
+            scheduleGlobeRender();
         });
 
     state.mapZoom = zoomBehaviour;
@@ -270,7 +301,7 @@ function initializeDrag(container) {
                     -ROTATION_LAT_CLAMP,
                     Math.min(ROTATION_LAT_CLAMP, state.mapRotation.phi - event.dy * dragFactor)
                 );
-                renderGlobe();
+                scheduleGlobeRender();
             })
             .on('end', () => {
                 state.isGlobeDragging = false;
@@ -361,7 +392,7 @@ async function initMap() {
         initializeZoom(state.mapSvg);
         initializeDrag(state.mapSvg);
 
-        renderGlobe();
+        scheduleGlobeRender(true);
 
         const resetBtn = document.getElementById('reset-globe');
         if (resetBtn) {
@@ -379,7 +410,7 @@ function resizeGlobe() {
     state.mapScale = state.mapBaseScale * state.mapZoomTransform.k;
     state.mapBounds = computeMapBounds(pathGenerator);
     initializeZoom(state.mapSvg);
-    renderGlobe();
+    scheduleGlobeRender(true);
 }
 
 function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900) {
@@ -391,7 +422,7 @@ function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900) {
     const desiredRotation = { lambda: desiredLambda, phi: desiredPhi };
     const rotationInterpolator = d3.interpolateObject(startRotation, desiredRotation);
 
-    const scaleExtent = state.mapZoom ? state.mapZoom.scaleExtent() : [0.7, 4];
+    const scaleExtent = state.mapZoom ? state.mapZoom.scaleExtent() : [0.7, 240];
     const clampedZoom = Math.max(scaleExtent[0], Math.min(scaleExtent[1], targetZoomK));
     state.mapZoomTransform = d3.zoomIdentity.scale(clampedZoom);
 
@@ -401,10 +432,11 @@ function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900) {
         .tween('rotate', () => t => {
             state.mapRotation.lambda = rotationInterpolator(t).lambda;
             state.mapRotation.phi = rotationInterpolator(t).phi;
-            renderGlobe();
+            scheduleGlobeRender();
         })
         .on('end', () => {
             state.mapRotation = { lambda: desiredLambda, phi: desiredPhi };
+            scheduleGlobeRender(true);
         });
 
     if (state.mapZoom) {
@@ -414,7 +446,7 @@ function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900) {
             .call(state.mapZoom.transform, d3.zoomIdentity.scale(clampedZoom));
     } else {
         state.mapScale = state.mapBaseScale * clampedZoom;
-        renderGlobe();
+        scheduleGlobeRender(true);
     }
 }
 
@@ -422,6 +454,7 @@ function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900) {
 window.renderGlobe = renderGlobe;
 window.resizeGlobe = resizeGlobe;
 window.animateToRotation = animateToRotation;
+window.scheduleGlobeRender = scheduleGlobeRender;
 
 function resetGlobeOrientation() {
     animateToRotation({ lambda: 0, phi: 0 }, 1, 600);

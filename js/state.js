@@ -29,5 +29,11 @@ const state = {
     mapBaseScale: 1,
     mapScale: 1,
     mapDimensions: { width: 0, height: 0 },
-    mapZoomTransform: d3.zoomIdentity
+    mapZoomTransform: d3.zoomIdentity,
+    lastStaticRender: {
+        lambda: null,
+        phi: null,
+        scale: null,
+        countiesVisible: null
+    }
 };
