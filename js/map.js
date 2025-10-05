@@ -104,7 +104,7 @@ function updateMapBubbles() {
     
     groups.append('circle')
         .attr('class', 'map-bubble')
-        .attr('r', d => Math.max(4, Math.sqrt(d.aum) * 0.6))
+        .attr('r', d => Math.max(2, Math.sqrt(d.aum) * 0.3))
         .attr('cx', d => {
             const coords = CONFIG.CITY_COORDS[d.hqLocation];
             return state.mapProjection([coords[1], coords[0]])[0];
@@ -122,7 +122,7 @@ function updateMapBubbles() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr('r', Math.max(6, Math.sqrt(d.aum) * 0.8));
+                .attr('r', Math.max(3, Math.sqrt(d.aum) * 0.4));
             
             const content = `<strong>${d.name}</strong><br>
                            AUM: $${d.aum.toFixed(1)}B<br>
@@ -134,7 +134,7 @@ function updateMapBubbles() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr('r', Math.max(4, Math.sqrt(d.aum) * 0.6));
+                .attr('r', Math.max(2, Math.sqrt(d.aum) * 0.3));
             hideTooltip();
         });
     
@@ -147,7 +147,7 @@ function updateMapBubbles() {
         .attr('y', d => {
             const coords = CONFIG.CITY_COORDS[d.hqLocation];
             const projected = state.mapProjection([coords[1], coords[0]]);
-            return projected[1] + Math.max(4, Math.sqrt(d.aum) * 0.6) + 12;
+            return projected[1] + Math.max(2, Math.sqrt(d.aum) * 0.3) + 8;
         })
         .text(d => d.name);
 }
