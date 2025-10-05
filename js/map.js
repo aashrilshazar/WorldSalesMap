@@ -6,6 +6,7 @@ const MAP_CITY_BASE_RADIUS = 1.6;
 const MAP_CITY_MIN_RADIUS = 0.5;
 const MAP_BOUNDARY_PADDING = 20;
 const ROTATION_SENSITIVITY = 0.25;
+const ROTATION_LAT_CLAMP = 75;
 const WORLD_SPHERE = { type: 'Sphere' };
 
 let pathGenerator = null;
@@ -27,8 +28,8 @@ function computeMapBounds(path) {
 
 function updateProjection() {
     if (!state.mapProjection) return;
-    state.mapRotation.phi = 0;
     state.mapRotation.lambda = ((state.mapRotation.lambda + 180) % 360 + 360) % 360 - 180;
+    state.mapRotation.phi = Math.max(-ROTATION_LAT_CLAMP, Math.min(ROTATION_LAT_CLAMP, state.mapRotation.phi));
     const { width, height } = state.mapDimensions;
     state.mapProjection
         .translate([width / 2, height / 2])
@@ -203,35 +204,14 @@ function initializeZoom(container) {
         .translateExtent(state.mapBounds || [[-Infinity, -Infinity], [Infinity, Infinity]])
         .filter(event => {
             if (event.type === 'wheel') return true;
-            if (event.type === 'touchstart') {
-                return event.touches?.length > 1;
-            }
-            if (event.type === 'touchmove') {
-                return event.touches?.length > 1;
+            if (event.type === 'touchstart' || event.type === 'touchmove') {
+                return (event.touches?.length || 0) > 1;
             }
             return false;
         })
         .on('zoom', event => {
-            const { sourceEvent, transform } = event;
-
-            if (sourceEvent && sourceEvent.type === 'wheel') {
-                const isPinch = sourceEvent.ctrlKey || sourceEvent.metaKey;
-                if (!isPinch) {
-                    const deltaX = sourceEvent.deltaX ?? 0;
-                    const factor = ROTATION_SENSITIVITY * 0.12;
-                    if (Math.abs(deltaX) > 0.1) {
-                        state.mapRotation.lambda += deltaX * factor;
-                        const k = state.mapZoomTransform.k;
-                        state.mapZoomTransform = d3.zoomIdentity.scale(k);
-                        container.call(zoomBehaviour.transform, state.mapZoomTransform);
-                        renderGlobe();
-                        return;
-                    }
-                }
-            }
-
-            state.mapZoomTransform = transform;
-            state.mapScale = state.mapBaseScale * transform.k;
+            state.mapZoomTransform = event.transform;
+            state.mapScale = state.mapBaseScale * event.transform.k;
             renderGlobe();
         });
 
@@ -248,6 +228,10 @@ function initializeDrag(container) {
             })
             .on('drag', event => {
                 state.mapRotation.lambda += event.dx * ROTATION_SENSITIVITY;
+                state.mapRotation.phi = Math.max(
+                    -ROTATION_LAT_CLAMP,
+                    Math.min(ROTATION_LAT_CLAMP, state.mapRotation.phi - event.dy * ROTATION_SENSITIVITY)
+                );
                 renderGlobe();
             })
             .on('end', () => {
@@ -332,6 +316,11 @@ async function initMap() {
         initializeDrag(state.mapSvg);
 
         renderGlobe();
+
+        const resetBtn = document.getElementById('reset-globe');
+        if (resetBtn) {
+            resetBtn.onclick = resetGlobeOrientation;
+        }
     } catch (e) {
         console.error('Error loading map:', e);
     }
@@ -350,8 +339,10 @@ function resizeGlobe() {
 function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900) {
     if (!state.mapSvg) return;
     const desiredLambda = targetRotation?.lambda ?? state.mapRotation.lambda;
-    const startRotation = { lambda: state.mapRotation.lambda, phi: 0 };
-    const desiredRotation = { lambda: desiredLambda, phi: 0 };
+    const desiredPhiRaw = targetRotation?.phi ?? state.mapRotation.phi;
+    const desiredPhi = Math.max(-ROTATION_LAT_CLAMP, Math.min(ROTATION_LAT_CLAMP, desiredPhiRaw));
+    const startRotation = { lambda: state.mapRotation.lambda, phi: state.mapRotation.phi };
+    const desiredRotation = { lambda: desiredLambda, phi: desiredPhi };
     const rotationInterpolator = d3.interpolateObject(startRotation, desiredRotation);
 
     const scaleExtent = state.mapZoom ? state.mapZoom.scaleExtent() : [0.7, 4];
@@ -363,11 +354,11 @@ function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900) {
         .ease(d3.easeCubicInOut)
         .tween('rotate', () => t => {
             state.mapRotation.lambda = rotationInterpolator(t).lambda;
-            state.mapRotation.phi = 0;
+            state.mapRotation.phi = rotationInterpolator(t).phi;
             renderGlobe();
         })
         .on('end', () => {
-            state.mapRotation = { lambda: desiredLambda, phi: 0 };
+            state.mapRotation = { lambda: desiredLambda, phi: desiredPhi };
         });
 
     if (state.mapZoom) {
@@ -386,13 +377,20 @@ window.renderGlobe = renderGlobe;
 window.resizeGlobe = resizeGlobe;
 window.animateToRotation = animateToRotation;
 
+function resetGlobeOrientation() {
+    const currentZoom = state.mapZoomTransform?.k || 1;
+    animateToRotation({ lambda: 0, phi: 0 }, currentZoom, 600);
+}
+
+window.resetGlobeOrientation = resetGlobeOrientation;
+
 // Override existing zoomToLocation behaviour
 function zoomToLocation(firm) {
     if (!firm?.hqLocation || !CONFIG.CITY_COORDS[firm.hqLocation]) return;
     const coords = CONFIG.CITY_COORDS[firm.hqLocation];
     const target = {
         lambda: -coords[1],
-        phi: 0
+        phi: -coords[0]
     };
     animateToRotation(target, 2);
 }
