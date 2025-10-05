@@ -230,7 +230,7 @@ function renderGlobe() {
 
 function initializeZoom(container) {
     const zoomBehaviour = d3.zoom()
-        .scaleExtent([0.7, 24])
+        .scaleExtent([0.7, 240])
         .translateExtent(state.mapBounds || [[-Infinity, -Infinity], [Infinity, Infinity]])
         .filter(event => {
             if (event.type === 'wheel') return true;
