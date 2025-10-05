@@ -83,42 +83,8 @@ function renderSphere() {
 }
 
 function renderCities() {
-    if (!state.mapCities || !Array.isArray(state.cities)) return;
-    const radius = Math.max(MAP_CITY_MIN_RADIUS, MAP_CITY_BASE_RADIUS * (state.mapScale / state.mapBaseScale));
-
-    const projected = state.cities
-        .map(city => {
-            const coords = state.mapProjection([city.lon, city.lat]);
-            if (!coords) return null;
-            return { ...city, projected: coords };
-        })
-        .filter(Boolean);
-
-    const citySelection = state.mapCities.selectAll('circle')
-        .data(projected, d => `${d.city}-${d.state}`);
-
-    const cityEnter = citySelection.enter()
-        .append('circle')
-        .attr('class', 'map-city')
-        .attr('r', radius);
-
-    cityEnter.append('title');
-
-    const merged = cityEnter.merge(citySelection);
-
-    merged
-        .attr('cx', d => d.projected[0])
-        .attr('cy', d => d.projected[1])
-        .attr('r', radius);
-
-    merged.select('title')
-        .text(d => {
-            const stateLabel = d.state ? `, ${d.state}` : '';
-            const population = d.population ? d.population.toLocaleString('en-US') : 'N/A';
-            return `${d.city}${stateLabel}\nPopulation: ${population}`;
-        });
-
-    citySelection.exit().remove();
+    if (!state.mapCities) return;
+    state.mapCities.selectAll('circle').remove();
 }
 
 function updateMapBubbles() {
@@ -155,7 +121,7 @@ function updateMapBubbles() {
         .attr('r', d => Math.max(MAP_BUBBLE_MIN_RADIUS, Math.sqrt(d.aum) * MAP_BUBBLE_FACTOR))
         .attr('cx', d => d.projected[0])
         .attr('cy', d => d.projected[1])
-        .style('fill', d => getStageColor(d.stage))
+        .style('fill', '#22c55e')
         .on('click', (event, d) => {
             event.stopPropagation();
             openFirmPanel(d);
@@ -164,7 +130,8 @@ function updateMapBubbles() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr('r', Math.max(MAP_BUBBLE_MIN_RADIUS * 1.5, Math.sqrt(d.aum) * MAP_BUBBLE_HOVER_FACTOR));
+                .attr('r', Math.max(MAP_BUBBLE_MIN_RADIUS * 1.5, Math.sqrt(d.aum) * MAP_BUBBLE_HOVER_FACTOR))
+                .style('fill', '#4ade80');
 
             const content = `<strong>${d.name}</strong><br>
                 AUM: $${d.aum.toFixed(1)}B<br>
@@ -176,7 +143,8 @@ function updateMapBubbles() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr('r', Math.max(MAP_BUBBLE_MIN_RADIUS, Math.sqrt(d.aum) * MAP_BUBBLE_FACTOR));
+                .attr('r', Math.max(MAP_BUBBLE_MIN_RADIUS, Math.sqrt(d.aum) * MAP_BUBBLE_FACTOR))
+                .style('fill', '#22c55e');
             hideTooltip();
         });
 
@@ -227,10 +195,12 @@ function initializeDrag(container) {
                 state.isGlobeDragging = true;
             })
             .on('drag', event => {
-                state.mapRotation.lambda += event.dx * ROTATION_SENSITIVITY;
+                const zoomFactor = state.mapZoomTransform?.k || 1;
+                const dragFactor = ROTATION_SENSITIVITY / Math.max(zoomFactor, 0.5);
+                state.mapRotation.lambda += event.dx * dragFactor;
                 state.mapRotation.phi = Math.max(
                     -ROTATION_LAT_CLAMP,
-                    Math.min(ROTATION_LAT_CLAMP, state.mapRotation.phi - event.dy * ROTATION_SENSITIVITY)
+                    Math.min(ROTATION_LAT_CLAMP, state.mapRotation.phi - event.dy * dragFactor)
                 );
                 renderGlobe();
             })
