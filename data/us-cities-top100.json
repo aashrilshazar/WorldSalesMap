@@ -1,0 +1,702 @@
+[
+  {
+    "city": "New York",
+    "state": "",
+    "lat": 40.7305991,
+    "lon": -73.9865812,
+    "population": 8287238
+  },
+  {
+    "city": "Los Angeles",
+    "state": "",
+    "lat": 34.053717,
+    "lon": -118.2427266,
+    "population": 3826423
+  },
+  {
+    "city": "Chicago",
+    "state": "",
+    "lat": 41.8755546,
+    "lon": -87.6244212,
+    "population": 2705627
+  },
+  {
+    "city": "Houston",
+    "state": "",
+    "lat": 29.7589382,
+    "lon": -95.3676974,
+    "population": 2129784
+  },
+  {
+    "city": "Philadelphia",
+    "state": "",
+    "lat": 39.952335,
+    "lon": -75.163789,
+    "population": 1539313
+  },
+  {
+    "city": "Phoenix",
+    "state": "",
+    "lat": 33.4467681,
+    "lon": -112.0756724,
+    "population": 1465114
+  },
+  {
+    "city": "San Antonio",
+    "state": "",
+    "lat": 29.4246002,
+    "lon": -98.4951405,
+    "population": 1359174
+  },
+  {
+    "city": "San Diego",
+    "state": "",
+    "lat": 32.7174209,
+    "lon": -117.1627714,
+    "population": 1321016
+  },
+  {
+    "city": "Dallas",
+    "state": "",
+    "lat": 32.7761963,
+    "lon": -96.7968994,
+    "population": 1219399
+  },
+  {
+    "city": "San Jose",
+    "state": "",
+    "lat": 37.3438502,
+    "lon": -121.8831349,
+    "population": 971495
+  },
+  {
+    "city": "Austin",
+    "state": "",
+    "lat": 30.2711286,
+    "lon": -97.7436995,
+    "population": 839714
+  },
+  {
+    "city": "Jacksonville",
+    "state": "",
+    "lat": 30.3321838,
+    "lon": -81.655651,
+    "population": 829543
+  },
+  {
+    "city": "Indianapolis",
+    "state": "",
+    "lat": 39.7683331,
+    "lon": -86.1583502,
+    "population": 827346
+  },
+  {
+    "city": "San Francisco",
+    "state": "",
+    "lat": 37.7792768,
+    "lon": -122.4192704,
+    "population": 816239
+  },
+  {
+    "city": "Columbus",
+    "state": "",
+    "lat": 39.9622601,
+    "lon": -83.0007065,
+    "population": 799270
+  },
+  {
+    "city": "Fort Worth",
+    "state": "",
+    "lat": 32.753177,
+    "lon": -97.3327459,
+    "population": 761895
+  },
+  {
+    "city": "Charlotte",
+    "state": "",
+    "lat": 35.2270869,
+    "lon": -80.8431268,
+    "population": 756204
+  },
+  {
+    "city": "Detroit",
+    "state": "",
+    "lat": 42.3486635,
+    "lon": -83.0567375,
+    "population": 702149
+  },
+  {
+    "city": "El Paso",
+    "state": "",
+    "lat": 31.8111305,
+    "lon": -106.5013493,
+    "population": 665503
+  },
+  {
+    "city": "Memphis",
+    "state": "",
+    "lat": 35.1490215,
+    "lon": -90.0516285,
+    "population": 655975
+  },
+  {
+    "city": "Boston",
+    "state": "",
+    "lat": 42.3604823,
+    "lon": -71.0595678,
+    "population": 630645
+  },
+  {
+    "city": "Seattle",
+    "state": "",
+    "lat": 47.6038321,
+    "lon": -122.3300624,
+    "population": 622175
+  },
+  {
+    "city": "Baltimore",
+    "state": "",
+    "lat": 39.2908608,
+    "lon": -76.6108073,
+    "population": 620889
+  },
+  {
+    "city": "Washington",
+    "state": "",
+    "lat": 38.8949549,
+    "lon": -77.0366456,
+    "population": 620427
+  },
+  {
+    "city": "Denver",
+    "state": "",
+    "lat": 39.7391536,
+    "lon": -104.9847034,
+    "population": 619390
+  },
+  {
+    "city": "Nashville-Davidson",
+    "state": "",
+    "lat": 36.187025,
+    "lon": -86.78086153,
+    "population": 612243
+  },
+  {
+    "city": "Louisville/Jefferson County",
+    "state": "",
+    "lat": 38.209237,
+    "lon": -85.7038502,
+    "population": 601709
+  },
+  {
+    "city": "Milwaukee",
+    "state": "",
+    "lat": 43.0349931,
+    "lon": -87.922497,
+    "population": 597435
+  },
+  {
+    "city": "Portland",
+    "state": "",
+    "lat": 45.5202471,
+    "lon": -122.6741949,
+    "population": 593859
+  },
+  {
+    "city": "Oklahoma City",
+    "state": "",
+    "lat": 35.4729886,
+    "lon": -97.5170536,
+    "population": 589896
+  },
+  {
+    "city": "Las Vegas",
+    "state": "",
+    "lat": 36.1662859,
+    "lon": -115.149225,
+    "population": 588257
+  },
+  {
+    "city": "Albuquerque",
+    "state": "",
+    "lat": 35.0841034,
+    "lon": -106.6509851,
+    "population": 551813
+  },
+  {
+    "city": "Tucson",
+    "state": "",
+    "lat": 32.2217422,
+    "lon": -110.9264759,
+    "population": 524192
+  },
+  {
+    "city": "Fresno",
+    "state": "",
+    "lat": 36.7394421,
+    "lon": -119.7848307,
+    "population": 501357
+  },
+  {
+    "city": "Sacramento",
+    "state": "",
+    "lat": 38.5815719,
+    "lon": -121.4943996,
+    "population": 471625
+  },
+  {
+    "city": "Long Beach",
+    "state": "",
+    "lat": 33.7774658,
+    "lon": -118.1884871,
+    "population": 465825
+  },
+  {
+    "city": "Kansas City",
+    "state": "",
+    "lat": 39.0844687,
+    "lon": -94.5630298,
+    "population": 462035
+  },
+  {
+    "city": "Mesa",
+    "state": "",
+    "lat": 33.436188,
+    "lon": -111.5860661,
+    "population": 444954
+  },
+  {
+    "city": "Virginia Beach",
+    "state": "",
+    "lat": 36.7953025,
+    "lon": -76.05092502,
+    "population": 442984
+  },
+  {
+    "city": "Atlanta",
+    "state": "",
+    "lat": 33.7490987,
+    "lon": -84.3901849,
+    "population": 432135
+  },
+  {
+    "city": "Omaha",
+    "state": "",
+    "lat": 41.2587317,
+    "lon": -95.9378732,
+    "population": 429604
+  },
+  {
+    "city": "Colorado Springs",
+    "state": "",
+    "lat": 38.8339578,
+    "lon": -104.8253485,
+    "population": 427416
+  },
+  {
+    "city": "Raleigh",
+    "state": "",
+    "lat": 35.7804015,
+    "lon": -78.6390779,
+    "population": 414135
+  },
+  {
+    "city": "Miami",
+    "state": "",
+    "lat": 25.7742658,
+    "lon": -80.1936589,
+    "population": 412438
+  },
+  {
+    "city": "Oakland",
+    "state": "",
+    "lat": 37.8044557,
+    "lon": -122.2713563,
+    "population": 396649
+  },
+  {
+    "city": "Tulsa",
+    "state": "",
+    "lat": 36.1556805,
+    "lon": -95.9929113,
+    "population": 392751
+  },
+  {
+    "city": "Cleveland",
+    "state": "",
+    "lat": 41.5051613,
+    "lon": -81.6934446,
+    "population": 392505
+  },
+  {
+    "city": "Minneapolis",
+    "state": "",
+    "lat": 44.9772995,
+    "lon": -93.2654692,
+    "population": 388253
+  },
+  {
+    "city": "Wichita",
+    "state": "",
+    "lat": 37.6922361,
+    "lon": -97.3375448,
+    "population": 383696
+  },
+  {
+    "city": "Arlington",
+    "state": "",
+    "lat": 32.7355816,
+    "lon": -97.1071186,
+    "population": 370908
+  },
+  {
+    "city": "New Orleans",
+    "state": "",
+    "lat": 29.9499323,
+    "lon": -90.0701156,
+    "population": 360877
+  },
+  {
+    "city": "Bakersfield",
+    "state": "",
+    "lat": 35.3738712,
+    "lon": -119.0194639,
+    "population": 353533
+  },
+  {
+    "city": "Tampa",
+    "state": "",
+    "lat": 27.9477595,
+    "lon": -82.458444,
+    "population": 346934
+  },
+  {
+    "city": "Anaheim",
+    "state": "",
+    "lat": 33.8347516,
+    "lon": -117.911732,
+    "population": 340830
+  },
+  {
+    "city": "Santa Ana",
+    "state": "",
+    "lat": 33.7499595,
+    "lon": -117.8732826,
+    "population": 328856
+  },
+  {
+    "city": "St. Louis",
+    "state": "",
+    "lat": 38.6272733,
+    "lon": -90.1978889,
+    "population": 319188
+  },
+  {
+    "city": "Riverside",
+    "state": "",
+    "lat": 33.9533546,
+    "lon": -117.3961623,
+    "population": 310025
+  },
+  {
+    "city": "Corpus Christi",
+    "state": "",
+    "lat": 27.8002542,
+    "lon": -97.3955744,
+    "population": 308069
+  },
+  {
+    "city": "Pittsburgh",
+    "state": "",
+    "lat": 40.4416941,
+    "lon": -79.9900861,
+    "population": 306099
+  },
+  {
+    "city": "Lexington-Fayette urban county",
+    "state": "",
+    "lat": 38.0464066,
+    "lon": -84.4970393,
+    "population": 301213
+  },
+  {
+    "city": "Cincinnati",
+    "state": "",
+    "lat": 39.1014537,
+    "lon": -84.5124602,
+    "population": 296114
+  },
+  {
+    "city": "Stockton",
+    "state": "",
+    "lat": 37.9577016,
+    "lon": -121.2907796,
+    "population": 295386
+  },
+  {
+    "city": "St. Paul",
+    "state": "",
+    "lat": 44.9504037,
+    "lon": -93.1015026,
+    "population": 288884
+  },
+  {
+    "city": "Toledo",
+    "state": "",
+    "lat": 41.6786754,
+    "lon": -83.5127283,
+    "population": 285549
+  },
+  {
+    "city": "Newark",
+    "state": "",
+    "lat": 40.735657,
+    "lon": -74.1723667,
+    "population": 277854
+  },
+  {
+    "city": "Greensboro",
+    "state": "",
+    "lat": 36.0726355,
+    "lon": -79.7919754,
+    "population": 272521
+  },
+  {
+    "city": "Plano",
+    "state": "",
+    "lat": 33.0136764,
+    "lon": -96.6925096,
+    "population": 267620
+  },
+  {
+    "city": "Lincoln",
+    "state": "",
+    "lat": 40.8000554,
+    "lon": -96.6674005,
+    "population": 262389
+  },
+  {
+    "city": "Buffalo",
+    "state": "",
+    "lat": 42.8864468,
+    "lon": -78.8783689,
+    "population": 260525
+  },
+  {
+    "city": "Henderson",
+    "state": "",
+    "lat": 40.8156124,
+    "lon": -90.9104547,
+    "population": 259958
+  },
+  {
+    "city": "Fort Wayne",
+    "state": "",
+    "lat": 41.0799898,
+    "lon": -85.1386015,
+    "population": 254607
+  },
+  {
+    "city": "Jersey City",
+    "state": "",
+    "lat": 40.7281575,
+    "lon": -74.0776417,
+    "population": 253117
+  },
+  {
+    "city": "Chula Vista",
+    "state": "",
+    "lat": 32.6400541,
+    "lon": -117.0841955,
+    "population": 248684
+  },
+  {
+    "city": "St. Petersburg",
+    "state": "",
+    "lat": 27.7703796,
+    "lon": -82.6695085,
+    "population": 246042
+  },
+  {
+    "city": "Orlando",
+    "state": "",
+    "lat": 28.5421175,
+    "lon": -81.3790462,
+    "population": 243787
+  },
+  {
+    "city": "Laredo",
+    "state": "",
+    "lat": 27.5060991,
+    "lon": -99.5088979,
+    "population": 241188
+  },
+  {
+    "city": "Chandler",
+    "state": "",
+    "lat": 33.3067132,
+    "lon": -111.8408489,
+    "population": 239977
+  },
+  {
+    "city": "Madison",
+    "state": "",
+    "lat": 43.074761,
+    "lon": -89.3837613,
+    "population": 236923
+  },
+  {
+    "city": "Lubbock",
+    "state": "",
+    "lat": 33.5778631,
+    "lon": -101.8551665,
+    "population": 233586
+  },
+  {
+    "city": "Winston-Salem",
+    "state": "",
+    "lat": 36.0998167,
+    "lon": -80.2441445,
+    "population": 231873
+  },
+  {
+    "city": "Hialeah",
+    "state": "",
+    "lat": 25.8670435,
+    "lon": -80.29146312,
+    "population": 231352
+  },
+  {
+    "city": "Garland",
+    "state": "",
+    "lat": 32.912624,
+    "lon": -96.6388833,
+    "population": 230205
+  },
+  {
+    "city": "Baton Rouge",
+    "state": "",
+    "lat": 30.4507462,
+    "lon": -91.154551,
+    "population": 228939
+  },
+  {
+    "city": "Glendale",
+    "state": "",
+    "lat": 34.1423455,
+    "lon": -118.2483671,
+    "population": 228645
+  },
+  {
+    "city": "Chesapeake",
+    "state": "",
+    "lat": 36.8190369,
+    "lon": -76.2749399,
+    "population": 225333
+  },
+  {
+    "city": "Irvine",
+    "state": "",
+    "lat": 33.6856969,
+    "lon": -117.8259819,
+    "population": 220528
+  },
+  {
+    "city": "Irving",
+    "state": "",
+    "lat": 32.8629195,
+    "lon": -96.97917017,
+    "population": 220012
+  },
+  {
+    "city": "Scottsdale",
+    "state": "",
+    "lat": 33.5091215,
+    "lon": -111.8992365,
+    "population": 219841
+  },
+  {
+    "city": "North Las Vegas",
+    "state": "",
+    "lat": 36.2008371,
+    "lon": -115.1120958,
+    "population": 218971
+  },
+  {
+    "city": "Fremont",
+    "state": "",
+    "lat": 37.5482697,
+    "lon": -121.9885719,
+    "population": 217630
+  },
+  {
+    "city": "Gilbert",
+    "state": "",
+    "lat": 33.294207,
+    "lon": -111.7379465,
+    "population": 214057
+  },
+  {
+    "city": "San Bernardino",
+    "state": "",
+    "lat": 34.1083449,
+    "lon": -117.2897652,
+    "population": 212061
+  },
+  {
+    "city": "Rochester",
+    "state": "",
+    "lat": 43.1854754,
+    "lon": -77.61068605,
+    "population": 210891
+  },
+  {
+    "city": "Boise City",
+    "state": "",
+    "lat": 43.5988375,
+    "lon": -116.243255,
+    "population": 209280
+  },
+  {
+    "city": "Spokane",
+    "state": "",
+    "lat": 47.6588603,
+    "lon": -117.4247134,
+    "population": 209025
+  },
+  {
+    "city": "Montgomery",
+    "state": "",
+    "lat": 32.3669656,
+    "lon": -86.3006485,
+    "population": 207513
+  },
+  {
+    "city": "Richmond",
+    "state": "",
+    "lat": 37.5385087,
+    "lon": -77.43428,
+    "population": 206977
+  },
+  {
+    "city": "Des Moines",
+    "state": "",
+    "lat": 41.5910641,
+    "lon": -93.6037149,
+    "population": 205908
+  },
+  {
+    "city": "Modesto",
+    "state": "",
+    "lat": 37.6390972,
+    "lon": -120.9968782,
+    "population": 204312
+  },
+  {
+    "city": "Shreveport",
+    "state": "",
+    "lat": 32.4828485,
+    "lon": -93.82848316,
+    "population": 201875
+  }
+]
