@@ -102,6 +102,14 @@ button.active {
     display: block;
 }
 
+#kanban-view {
+    gap: 1rem;
+    padding: 1rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    align-items: flex-start;
+}
+
 #kanban-view.active {
     display: flex;
 }
@@ -333,7 +341,7 @@ canvas:active, #map-container svg:active {
     min-width: 280px;
     background: rgba(30,41,59,0.3);
     border-radius: 8px;
-    margin-right: 1rem;
+    flex: 0 0 280px;
     padding: 1rem;
     height: 100%;
     overflow-y: auto;
