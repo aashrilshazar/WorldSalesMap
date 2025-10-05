@@ -158,19 +158,14 @@ function animateToFirm(firm) {
 
 function zoomToLocation(firm) {
     if (!CONFIG.CITY_COORDS[firm.hqLocation]) return;
-    
-    const coords = CONFIG.CITY_COORDS[firm.hqLocation];
-    const [x, y] = state.mapProjection([coords[1], coords[0]]);
-    
-    state.mapSvg.transition()
-        .duration(750)
-        .call(
-            state.mapZoom.transform,
-            d3.zoomIdentity
-                .translate(window.innerWidth / 2, window.innerHeight / 2)
-                .scale(4)
-                .translate(-x, -y)
-        );
+
+    if (typeof animateToRotation === 'function') {
+        const coords = CONFIG.CITY_COORDS[firm.hqLocation];
+        animateToRotation({
+            lambda: -coords[1],
+            phi: Math.max(-60, Math.min(60, -coords[0]))
+        }, 2);
+    }
 }
 
 function handleResize() {
@@ -178,35 +173,9 @@ function handleResize() {
         resizeCanvas();
     }
     
-    if (state.viewMode === 'map' && state.mapProjection) {
-        const container = $('map-container');
-        const width = container.clientWidth;
-        const height = container.clientHeight;
-        
-        state.mapProjection
-            .scale((width / 2 / Math.PI) * 0.8)
-            .translate([width / 2, height / 1.8]);
-        
-        const path = d3.geoPath().projection(state.mapProjection);
-        if (state.mapCountries) {
-            state.mapCountries.selectAll('.map-country').attr('d', path);
+    if (state.viewMode === 'map') {
+        if (typeof resizeGlobe === 'function') {
+            resizeGlobe();
         }
-        if (state.mapStates) {
-            state.mapStates.selectAll('.map-state').attr('d', path);
-        }
-        
-        if (typeof computeMapBounds === 'function') {
-            state.mapBounds = computeMapBounds(path);
-        }
-        
-        if (state.mapZoom && state.mapSvg && state.mapBounds) {
-            state.mapZoom
-                .translateExtent(state.mapBounds)
-                .extent([[0, 0], [width, height]]);
-            const currentTransform = d3.zoomTransform(state.mapSvg.node());
-            state.mapSvg.call(state.mapZoom.transform, currentTransform);
-        }
-        
-        updateMapBubbles();
     }
 }

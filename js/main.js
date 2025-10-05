@@ -16,7 +16,11 @@ function setView(mode) {
             $('map-container').classList.add('active');
             $('view-map').classList.add('active');
             stopAnimation();
-            updateMapBubbles();
+            if (typeof renderGlobe === 'function') {
+                renderGlobe();
+            } else {
+                updateMapBubbles();
+            }
             break;
             
         case 'scatter':

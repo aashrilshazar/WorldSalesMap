@@ -1,6 +1,7 @@
 // Global state management
 const state = {
     firms: [],
+    cities: [],
     currentFirm: null,
     currentSort: 'none',
     viewMode: 'map',
@@ -9,13 +10,23 @@ const state = {
     camera: { x: 0, y: 0, zoom: 1 },
     isDragging: false,
     dragStart: { x: 0, y: 0 },
+    isGlobeDragging: false,
     hoveredFirm: null,
     animationFrame: null,
     mapSvg: null,
     mapG: null,
     mapCountries: null,
     mapStates: null,
+    mapCities: null,
+    mapBubblesGroup: null,
+    mapGraticule: null,
+    mapSphere: null,
     mapBounds: null,
     mapProjection: null,
-    mapZoom: null
+    mapZoom: null,
+    mapRotation: { lambda: 0, phi: -15 },
+    mapBaseScale: 1,
+    mapScale: 1,
+    mapDimensions: { width: 0, height: 0 },
+    mapZoomTransform: d3.zoomIdentity
 };
