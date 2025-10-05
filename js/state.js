@@ -17,6 +17,7 @@ const state = {
     mapG: null,
     mapCountries: null,
     mapStates: null,
+    mapCounties: null,
     mapCities: null,
     mapBubblesGroup: null,
     mapGraticule: null,

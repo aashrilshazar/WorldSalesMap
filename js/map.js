@@ -8,17 +8,31 @@ const MAP_BOUNDARY_PADDING = 20;
 const ROTATION_SENSITIVITY = 0.25;
 const ROTATION_LAT_CLAMP = 75;
 const WORLD_SPHERE = { type: 'Sphere' };
+const US_FOCUS_LON_RANGE = [-170, -50];
+const US_FOCUS_LAT_RANGE = [15, 75];
+const COUNTY_DISPLAY_ZOOM = 1.5;
+const METRO_DISPLAY_ZOOM = 1.2;
 
 let pathGenerator = null;
 let graticule = null;
 let countryFeatures = [];
 let stateFeatures = [];
+let countyFeatures = [];
+let metroData = [];
+let metroSelection = null;
 
 function isCoordinateVisible(lon, lat) {
     const centerLon = -state.mapRotation.lambda;
     const centerLat = -state.mapRotation.phi;
     const distance = d3.geoDistance([lon, lat], [centerLon, centerLat]);
     return distance <= Math.PI / 2 + 1e-6;
+}
+
+function isUSVisible() {
+    const centerLon = ((-state.mapRotation.lambda % 360) + 540) % 360 - 180;
+    const centerLat = -state.mapRotation.phi;
+    return centerLon >= US_FOCUS_LON_RANGE[0] && centerLon <= US_FOCUS_LON_RANGE[1] &&
+           centerLat >= US_FOCUS_LAT_RANGE[0] && centerLat <= US_FOCUS_LAT_RANGE[1];
 }
 
 function computeMapBounds(path) {
@@ -76,7 +90,68 @@ function renderCountries(fillByStage = true) {
 function renderStates() {
     if (!state.mapStates) return;
     state.mapStates.selectAll('path')
+        .attr('d', pathGenerator)
+        .style('opacity', 1);
+}
+
+function renderCounties() {
+    if (!state.mapCounties) return;
+    const shouldShow = isUSVisible() && state.mapZoomTransform?.k >= COUNTY_DISPLAY_ZOOM;
+    state.mapCounties
+        .style('opacity', shouldShow ? 0.6 : 0)
+        .style('pointer-events', 'none')
+        .selectAll('path')
         .attr('d', pathGenerator);
+}
+
+function renderMetros() {
+    if (!state.mapCities) return;
+    const shouldShow = isUSVisible() && state.mapZoomTransform?.k >= METRO_DISPLAY_ZOOM;
+    if (!shouldShow) {
+        state.mapCities.selectAll('g.metro-label').remove();
+        metroSelection = null;
+        return;
+    }
+
+    const projected = metroData
+        .map(m => {
+            if (!isCoordinateVisible(m.lon, m.lat)) return null;
+            const coords = state.mapProjection([m.lon, m.lat]);
+            if (!coords) return null;
+            return { ...m, projected: coords };
+        })
+        .filter(Boolean);
+
+    metroSelection = state.mapCities.selectAll('g.metro-label')
+        .data(projected, d => `${d.city}-${d.state}`);
+
+    const enter = metroSelection.enter()
+        .append('g')
+        .attr('class', 'metro-label');
+
+    enter.append('circle')
+        .attr('class', 'metro-dot')
+        .attr('r', 1.8);
+
+    enter.append('text')
+        .attr('class', 'metro-text')
+        .attr('dy', -4);
+
+    const merged = enter.merge(metroSelection);
+
+    merged
+        .attr('transform', d => `translate(${d.projected[0]}, ${d.projected[1]})`);
+
+    merged.select('.metro-dot')
+        .attr('r', d => Math.max(1.2, Math.min(3, 1.5 * (state.mapZoomTransform?.k || 1))))
+        .style('fill', '#38bdf8');
+
+    merged.select('.metro-text')
+        .text(d => d.city)
+        .style('font-size', `${Math.max(8, 12 / (state.mapZoomTransform?.k || 1))}px`)
+        .style('fill', '#e2e8f0');
+
+    metroSelection.exit().remove();
 }
 
 function renderGraticule() {
@@ -98,6 +173,8 @@ function updateMapBubbles() {
     if (!state.mapBubblesGroup || !state.mapProjection) return;
 
     renderCountries();
+    renderCounties();
+    renderMetros();
 
     const geocoded = state.firms.filter(f => f.hqLocation && CONFIG.CITY_COORDS[f.hqLocation]);
 
@@ -172,13 +249,12 @@ function renderGlobe() {
     renderSphere();
     renderGraticule();
     renderStates();
-    renderCities();
     updateMapBubbles();
 }
 
 function initializeZoom(container) {
     const zoomBehaviour = d3.zoom()
-        .scaleExtent([0.7, 4])
+        .scaleExtent([0.7, 8])
         .translateExtent(state.mapBounds || [[-Infinity, -Infinity], [Infinity, Infinity]])
         .filter(event => {
             if (event.type === 'wheel') return true;
@@ -252,6 +328,7 @@ async function initMap() {
     state.mapGraticule = state.mapG.append('path').attr('class', 'map-graticule');
     state.mapCountries = state.mapG.append('g').attr('class', 'map-countries');
     state.mapStates = state.mapG.append('g').attr('class', 'map-states');
+    state.mapCounties = state.mapG.append('g').attr('class', 'map-counties');
     state.mapCities = state.mapG.append('g').attr('class', 'map-cities');
     state.mapBubblesGroup = state.mapG.append('g').attr('class', 'map-bubbles');
 
@@ -264,17 +341,21 @@ async function initMap() {
     state.mapBounds = computeMapBounds(pathGenerator);
 
     try {
-        const [world, usStates, usCities] = await Promise.all([
+        const [world, usStates, usCounties, usMetros] = await Promise.all([
             d3.json('data/countries-110m.json'),
             d3.json('data/us-states-10m.json'),
-            d3.json('data/us-cities-top100.json')
+            d3.json('data/us-counties-10m.json'),
+            d3.json('data/us-metros-top500.json')
         ]);
 
         countryFeatures = topojson.feature(world, world.objects.countries).features;
         stateFeatures = usStates?.objects?.states
             ? topojson.feature(usStates, usStates.objects.states).features
             : [];
-        state.cities = Array.isArray(usCities) ? usCities : [];
+        countyFeatures = usCounties?.objects?.counties
+            ? topojson.feature(usCounties, usCounties.objects.counties).features
+            : [];
+        metroData = Array.isArray(usMetros) ? usMetros : [];
 
         state.mapCountries.selectAll('path')
             .data(countryFeatures, d => d.id)
@@ -285,6 +366,11 @@ async function initMap() {
             .data(stateFeatures, d => d.id)
             .join('path')
             .attr('class', 'map-state');
+
+        state.mapCounties.selectAll('path')
+            .data(countyFeatures, d => d.id)
+            .join('path')
+            .attr('class', 'map-county');
 
         if (!state.mapZoomTransform) {
             state.mapZoomTransform = d3.zoomIdentity;
