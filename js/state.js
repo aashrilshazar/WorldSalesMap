@@ -24,7 +24,7 @@ const state = {
     mapBounds: null,
     mapProjection: null,
     mapZoom: null,
-    mapRotation: { lambda: 0, phi: -15 },
+    mapRotation: { lambda: 0, phi: 0 },
     mapBaseScale: 1,
     mapScale: 1,
     mapDimensions: { width: 0, height: 0 },
