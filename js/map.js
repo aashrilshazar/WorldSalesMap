@@ -15,7 +15,10 @@ async function initMap() {
     const height = container.clientHeight;
     
     state.mapSvg = d3.select('#world-map');
+    state.mapSvg.selectAll('*').remove();
     state.mapG = state.mapSvg.append('g');
+    state.mapCountries = state.mapG.append('g').attr('class', 'map-countries');
+    state.mapStates = state.mapG.append('g').attr('class', 'map-states');
     state.mapProjection = d3.geoMercator()
         .scale((width / 2 / Math.PI) * 0.8)
         .translate([width / 2, height / 1.8]);
@@ -33,13 +36,25 @@ async function initMap() {
     state.mapSvg.call(state.mapZoom);
     
     try {
-        const world = await d3.json('data/countries-110m.json');
+        const [world, usStates] = await Promise.all([
+            d3.json('data/countries-110m.json'),
+            d3.json('data/us-states-10m.json')
+        ]);
         const countries = topojson.feature(world, world.objects.countries);
+        const states = usStates?.objects?.states
+            ? topojson.feature(usStates, usStates.objects.states)
+            : { features: [] };
 
-        state.mapG.selectAll('path')
+        state.mapCountries.selectAll('.map-country')
             .data(countries.features)
             .join('path')
             .attr('class', 'map-country')
+            .attr('d', path);
+
+        state.mapStates.selectAll('.map-state')
+            .data(states.features)
+            .join('path')
+            .attr('class', 'map-state')
             .attr('d', path);
         
         updateMapBubbles();
@@ -49,7 +64,7 @@ async function initMap() {
 }
 
 function updateMapBubbles() {
-    if (!state.mapG) return;
+    if (!state.mapG || !state.mapCountries) return;
     
     // Calculate country stages
     const countryStages = {};
@@ -67,7 +82,7 @@ function updateMapBubbles() {
     });
     
     // Update country shading
-    state.mapG.selectAll('.map-country')
+    state.mapCountries.selectAll('.map-country')
         .transition().duration(500)
         .style('fill', d => {
             const country = CONFIG.COUNTRY_IDS[d.id];

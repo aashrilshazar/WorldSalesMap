@@ -132,6 +132,13 @@ canvas:active, #map-container svg:active {
     stroke-width: 0.5;
 }
 
+.map-state {
+    fill: none;
+    stroke: rgba(148,163,184,0.4);
+    stroke-width: 0.4;
+    pointer-events: none;
+}
+
 .map-bubble {
     fill: #3b82f6;
     stroke: rgba(255,255,255,0.2);

@@ -13,6 +13,8 @@ const state = {
     animationFrame: null,
     mapSvg: null,
     mapG: null,
+    mapCountries: null,
+    mapStates: null,
     mapProjection: null,
     mapZoom: null
 };
