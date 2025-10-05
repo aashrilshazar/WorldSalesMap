@@ -201,9 +201,34 @@ function initializeZoom(container) {
     const zoomBehaviour = d3.zoom()
         .scaleExtent([0.7, 4])
         .translateExtent(state.mapBounds || [[-Infinity, -Infinity], [Infinity, Infinity]])
+        .filter(event => {
+            if (event.type === 'wheel') return true;
+            if (event.type === 'mousedown' && event.button === 0) return true;
+            return false;
+        })
         .on('zoom', event => {
-            state.mapZoomTransform = event.transform;
-            state.mapScale = state.mapBaseScale * event.transform.k;
+            const { sourceEvent, transform } = event;
+
+            if (sourceEvent && sourceEvent.type === 'wheel') {
+                const isPinch = sourceEvent.ctrlKey || sourceEvent.metaKey;
+                if (!isPinch) {
+                    const factor = ROTATION_SENSITIVITY * 0.12;
+                    state.mapRotation.lambda += sourceEvent.deltaX * factor;
+                    state.mapRotation.phi = Math.max(
+                        -ROTATION_LAT_CLAMP,
+                        Math.min(ROTATION_LAT_CLAMP, state.mapRotation.phi - sourceEvent.deltaY * factor)
+                    );
+
+                    const k = state.mapZoomTransform.k;
+                    state.mapZoomTransform = d3.zoomIdentity.scale(k);
+                    container.call(zoomBehaviour.transform, state.mapZoomTransform);
+                    renderGlobe();
+                    return;
+                }
+            }
+
+            state.mapZoomTransform = transform;
+            state.mapScale = state.mapBaseScale * transform.k;
             renderGlobe();
         });
 
@@ -230,6 +255,22 @@ function initializeDrag(container) {
                 state.isGlobeDragging = false;
             })
     );
+
+    container.on('click.globe-focus', event => {
+        if (state.isGlobeDragging) return;
+        if (event.defaultPrevented) return;
+        if (event.target.closest('.map-bubble')) return;
+
+        const point = d3.pointer(event, container.node());
+        const inverted = state.mapProjection.invert(point);
+        if (!inverted) return;
+
+        const [lon, lat] = inverted;
+        animateToRotation({
+            lambda: -lon,
+            phi: Math.max(-ROTATION_LAT_CLAMP, Math.min(ROTATION_LAT_CLAMP, -lat))
+        }, state.mapZoomTransform.k, 700);
+    });
 }
 
 function setInitialDimensions() {
