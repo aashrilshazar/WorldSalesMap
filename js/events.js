@@ -187,6 +187,26 @@ function handleResize() {
             .scale((width / 2 / Math.PI) * 0.8)
             .translate([width / 2, height / 1.8]);
         
+        const path = d3.geoPath().projection(state.mapProjection);
+        if (state.mapCountries) {
+            state.mapCountries.selectAll('.map-country').attr('d', path);
+        }
+        if (state.mapStates) {
+            state.mapStates.selectAll('.map-state').attr('d', path);
+        }
+        
+        if (typeof computeMapBounds === 'function') {
+            state.mapBounds = computeMapBounds(path);
+        }
+        
+        if (state.mapZoom && state.mapSvg && state.mapBounds) {
+            state.mapZoom
+                .translateExtent(state.mapBounds)
+                .extent([[0, 0], [width, height]]);
+            const currentTransform = d3.zoomTransform(state.mapSvg.node());
+            state.mapSvg.call(state.mapZoom.transform, currentTransform);
+        }
+        
         updateMapBubbles();
     }
 }

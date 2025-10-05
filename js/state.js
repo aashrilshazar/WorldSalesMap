@@ -15,6 +15,7 @@ const state = {
     mapG: null,
     mapCountries: null,
     mapStates: null,
+    mapBounds: null,
     mapProjection: null,
     mapZoom: null
 };

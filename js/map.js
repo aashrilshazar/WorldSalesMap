@@ -1,4 +1,22 @@
 // Map view functionality
+const MAP_BUBBLE_MIN_RADIUS = 2;
+const MAP_BUBBLE_FACTOR = 0.3;
+const MAP_BUBBLE_HOVER_FACTOR = 0.4;
+const MAP_BOUNDARY_PADDING = 20;
+const WORLD_SPHERE = { type: 'Sphere' };
+
+function computeMapBounds(path) {
+    const bounds = path.bounds(WORLD_SPHERE);
+    if (!bounds || !Array.isArray(bounds[0]) || !Array.isArray(bounds[1])) {
+        return [[-Infinity, -Infinity], [Infinity, Infinity]];
+    }
+    const [[x0, y0], [x1, y1]] = bounds;
+    return [
+        [x0 - MAP_BOUNDARY_PADDING, y0 - MAP_BOUNDARY_PADDING],
+        [x1 + MAP_BOUNDARY_PADDING, y1 + MAP_BOUNDARY_PADDING]
+    ];
+}
+
 async function initMap() {
     if (typeof d3 === 'undefined') {
         console.warn('D3 library unavailable; map view will be disabled.');
@@ -22,11 +40,14 @@ async function initMap() {
     state.mapProjection = d3.geoMercator()
         .scale((width / 2 / Math.PI) * 0.8)
         .translate([width / 2, height / 1.8]);
-    
+
     const path = d3.geoPath().projection(state.mapProjection);
-    
+    state.mapBounds = computeMapBounds(path);
+
     state.mapZoom = d3.zoom()
         .scaleExtent([0.5, 8])
+        .translateExtent(state.mapBounds)
+        .extent([[0, 0], [width, height]])
         .on('zoom', event => {
             state.mapG.attr('transform', event.transform);
             state.mapG.selectAll('.map-bubble-label')
@@ -104,7 +125,7 @@ function updateMapBubbles() {
     
     groups.append('circle')
         .attr('class', 'map-bubble')
-        .attr('r', d => Math.max(2, Math.sqrt(d.aum) * 0.3))
+        .attr('r', d => Math.max(MAP_BUBBLE_MIN_RADIUS, Math.sqrt(d.aum) * MAP_BUBBLE_FACTOR))
         .attr('cx', d => {
             const coords = CONFIG.CITY_COORDS[d.hqLocation];
             return state.mapProjection([coords[1], coords[0]])[0];
@@ -122,7 +143,7 @@ function updateMapBubbles() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr('r', Math.max(3, Math.sqrt(d.aum) * 0.4));
+                .attr('r', Math.max(MAP_BUBBLE_MIN_RADIUS * 1.5, Math.sqrt(d.aum) * MAP_BUBBLE_HOVER_FACTOR));
             
             const content = `<strong>${d.name}</strong><br>
                            AUM: $${d.aum.toFixed(1)}B<br>
@@ -134,7 +155,7 @@ function updateMapBubbles() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr('r', Math.max(2, Math.sqrt(d.aum) * 0.3));
+                .attr('r', Math.max(MAP_BUBBLE_MIN_RADIUS, Math.sqrt(d.aum) * MAP_BUBBLE_FACTOR));
             hideTooltip();
         });
     
@@ -147,7 +168,7 @@ function updateMapBubbles() {
         .attr('y', d => {
             const coords = CONFIG.CITY_COORDS[d.hqLocation];
             const projected = state.mapProjection([coords[1], coords[0]]);
-            return projected[1] + Math.max(2, Math.sqrt(d.aum) * 0.3) + 8;
+            return projected[1] + Math.max(MAP_BUBBLE_MIN_RADIUS, Math.sqrt(d.aum) * MAP_BUBBLE_FACTOR) + 8;
         })
         .text(d => d.name);
 }
