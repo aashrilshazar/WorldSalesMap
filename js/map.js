@@ -325,8 +325,8 @@ async function initMap() {
     try {
         const [world, usStates, usCounties] = await Promise.all([
             d3.json('data/countries-110m.json'),
-            d3.json('data/us-states-10m.json'),
-            d3.json('data/us-counties-10m.json')
+            d3.json('data/us-states-5m.json'),
+            d3.json('data/us-counties-5m.json')
         ]);
 
         countryFeatures = topojson.feature(world, world.objects.countries).features;
