@@ -162,16 +162,13 @@ function zoomToLocation(firm) {
     const coords = CONFIG.CITY_COORDS[firm.hqLocation];
     const [x, y] = state.mapProjection([coords[1], coords[0]]);
     
-    const [, maxZoom] = state.mapZoom?.scaleExtent() || [0.5, 8];
-    const targetZoom = Math.min(12, maxZoom);
-
     state.mapSvg.transition()
         .duration(750)
         .call(
             state.mapZoom.transform,
             d3.zoomIdentity
                 .translate(window.innerWidth / 2, window.innerHeight / 2)
-                .scale(targetZoom)
+                .scale(4)
                 .translate(-x, -y)
         );
 }
@@ -191,6 +188,5 @@ function handleResize() {
             .translate([width / 2, height / 1.8]);
         
         updateMapBubbles();
-        renderCities();
     }
 }

@@ -1,7 +1,6 @@
 // Global state management
 const state = {
     firms: [],
-    cities: [],
     currentFirm: null,
     currentSort: 'none',
     viewMode: 'map',
@@ -16,7 +15,6 @@ const state = {
     mapG: null,
     mapCountries: null,
     mapStates: null,
-    mapCities: null,
     mapProjection: null,
     mapZoom: null
 };

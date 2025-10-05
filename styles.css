@@ -139,13 +139,6 @@ canvas:active, #map-container svg:active {
     pointer-events: none;
 }
 
-.map-city {
-    fill: #fbbf24;
-    stroke: rgba(15,23,42,0.6);
-    stroke-width: 0.5;
-    pointer-events: none;
-}
-
 .map-bubble {
     fill: #3b82f6;
     stroke: rgba(255,255,255,0.2);
