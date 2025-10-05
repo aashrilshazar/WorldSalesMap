@@ -119,17 +119,52 @@ function updateMapBubbles() {
 
     const geocoded = state.firms.filter(f => f.hqLocation && CONFIG.CITY_COORDS[f.hqLocation]);
 
-    const projected = geocoded
-        .map(f => {
-            const coords = CONFIG.CITY_COORDS[f.hqLocation];
-            const lon = coords[1];
-            const lat = coords[0];
-            if (!isCoordinateVisible(lon, lat)) return null;
-            const projectedCoords = state.mapProjection([lon, lat]);
-            if (!projectedCoords) return null;
-            return { ...f, projected: projectedCoords };
-        })
-        .filter(Boolean);
+    const locationGroups = new Map();
+    geocoded.forEach(f => {
+        const coords = CONFIG.CITY_COORDS[f.hqLocation];
+        if (!coords) return;
+        const key = `${coords[0]}_${coords[1]}`;
+        if (!locationGroups.has(key)) {
+            locationGroups.set(key, { coords, firms: [] });
+        }
+        locationGroups.get(key).firms.push(f);
+    });
+
+    const projected = [];
+    const sizeRatio = 2;
+
+    locationGroups.forEach(({ coords, firms }) => {
+        const [lat, lon] = coords;
+        if (!isCoordinateVisible(lon, lat)) return;
+        const basePoint = state.mapProjection([lon, lat]);
+        if (!basePoint) return;
+
+        const sorted = [...firms].sort((a, b) => (b.aum ?? 0) - (a.aum ?? 0));
+        const baseRadius = Math.max(
+            MAP_BUBBLE_MIN_RADIUS,
+            Math.sqrt(sorted[0].aum || 1) * MAP_BUBBLE_FACTOR
+        );
+        const angleStep = sorted.length > 1 ? (Math.PI * 2) / sorted.length : 0;
+
+        sorted.forEach((firm, index) => {
+            const ratioRadius = baseRadius / Math.pow(sizeRatio, index);
+            const radius = Math.max(MAP_BUBBLE_MIN_RADIUS, ratioRadius);
+            let x = basePoint[0];
+            let y = basePoint[1];
+            if (index > 0) {
+                const angle = angleStep * index;
+                const offset = baseRadius * 0.9 + radius;
+                x += Math.cos(angle) * offset;
+                y += Math.sin(angle) * offset;
+            }
+            projected.push({
+                ...firm,
+                projected: [x, y],
+                radius,
+                labelBaseRadius: baseRadius
+            });
+        });
+    });
 
     const groups = state.mapBubblesGroup.selectAll('.map-bubble-group')
         .data(projected, d => d.id);
@@ -146,7 +181,7 @@ function updateMapBubbles() {
     const merged = groupsEnter.merge(groups);
 
     merged.select('.map-bubble')
-        .attr('r', d => Math.max(MAP_BUBBLE_MIN_RADIUS, Math.sqrt(d.aum) * MAP_BUBBLE_FACTOR))
+        .attr('r', d => d.radius)
         .attr('cx', d => d.projected[0])
         .attr('cy', d => d.projected[1])
         .style('fill', '#22c55e')
@@ -158,7 +193,7 @@ function updateMapBubbles() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr('r', Math.max(MAP_BUBBLE_MIN_RADIUS * 1.5, Math.sqrt(d.aum) * MAP_BUBBLE_HOVER_FACTOR))
+                .attr('r', Math.max(d.radius * 1.25, MAP_BUBBLE_MIN_RADIUS * 1.5))
                 .style('fill', '#4ade80');
 
             const content = `<strong>${d.name}</strong><br>
@@ -171,14 +206,14 @@ function updateMapBubbles() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr('r', Math.max(MAP_BUBBLE_MIN_RADIUS, Math.sqrt(d.aum) * MAP_BUBBLE_FACTOR))
+                .attr('r', d.radius)
                 .style('fill', '#22c55e');
             hideTooltip();
         });
 
     merged.select('.map-bubble-label')
         .attr('x', d => d.projected[0])
-        .attr('y', d => d.projected[1] + Math.max(MAP_BUBBLE_MIN_RADIUS, Math.sqrt(d.aum) * MAP_BUBBLE_FACTOR) + 8)
+        .attr('y', d => d.projected[1] + d.radius + 8)
         .text(d => d.name);
 
     groups.exit().remove();
@@ -383,8 +418,7 @@ window.resizeGlobe = resizeGlobe;
 window.animateToRotation = animateToRotation;
 
 function resetGlobeOrientation() {
-    const currentZoom = state.mapZoomTransform?.k || 1;
-    animateToRotation({ lambda: 0, phi: 0 }, currentZoom, 600);
+    animateToRotation({ lambda: 0, phi: 0 }, 1, 600);
 }
 
 window.resetGlobeOrientation = resetGlobeOrientation;
