@@ -14,6 +14,13 @@ let graticule = null;
 let countryFeatures = [];
 let stateFeatures = [];
 
+function isCoordinateVisible(lon, lat) {
+    const centerLon = -state.mapRotation.lambda;
+    const centerLat = -state.mapRotation.phi;
+    const distance = d3.geoDistance([lon, lat], [centerLon, centerLat]);
+    return distance <= Math.PI / 2 + 1e-6;
+}
+
 function computeMapBounds(path) {
     const bounds = path.bounds(WORLD_SPHERE);
     if (!bounds || !Array.isArray(bounds[0]) || !Array.isArray(bounds[1])) {
@@ -97,7 +104,10 @@ function updateMapBubbles() {
     const projected = geocoded
         .map(f => {
             const coords = CONFIG.CITY_COORDS[f.hqLocation];
-            const projectedCoords = state.mapProjection([coords[1], coords[0]]);
+            const lon = coords[1];
+            const lat = coords[0];
+            if (!isCoordinateVisible(lon, lat)) return null;
+            const projectedCoords = state.mapProjection([lon, lat]);
             if (!projectedCoords) return null;
             return { ...f, projected: projectedCoords };
         })
