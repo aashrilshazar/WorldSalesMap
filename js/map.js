@@ -133,6 +133,11 @@ function updateMapBubbles() {
     const projected = [];
     const sizeRatio = 2;
 
+    const zoomLevel = state.mapZoomTransform?.k || 1;
+    const maxZoom = state.mapZoom?.scaleExtent()[1] || 240;
+    const zoomRatio = maxZoom > 1 ? Math.min(1, Math.max(0, (zoomLevel - 1) / (maxZoom - 1))) : 0;
+    const sizeScale = 1 + zoomRatio * 2; // up to 3x at max zoom
+
     locationGroups.forEach(({ coords, firms }) => {
         const [lat, lon] = coords;
         if (!isCoordinateVisible(lon, lat)) return;
@@ -140,9 +145,10 @@ function updateMapBubbles() {
         if (!basePoint) return;
 
         const sorted = [...firms].sort((a, b) => (b.aum ?? 0) - (a.aum ?? 0));
+        const rawBaseRadius = Math.sqrt(sorted[0].aum || 1) * MAP_BUBBLE_FACTOR;
         const baseRadius = Math.max(
             MAP_BUBBLE_MIN_RADIUS,
-            Math.sqrt(sorted[0].aum || 1) * MAP_BUBBLE_FACTOR
+            rawBaseRadius * sizeScale
         );
         const angleStep = sorted.length > 1 ? (Math.PI * 2) / sorted.length : 0;
 
