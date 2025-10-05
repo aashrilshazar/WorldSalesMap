@@ -203,7 +203,12 @@ function initializeZoom(container) {
         .translateExtent(state.mapBounds || [[-Infinity, -Infinity], [Infinity, Infinity]])
         .filter(event => {
             if (event.type === 'wheel') return true;
-            if (event.type === 'mousedown' && event.button === 0) return true;
+            if (event.type === 'touchstart') {
+                return event.touches?.length > 1;
+            }
+            if (event.type === 'touchmove') {
+                return event.touches?.length > 1;
+            }
             return false;
         })
         .on('zoom', event => {
@@ -212,19 +217,16 @@ function initializeZoom(container) {
             if (sourceEvent && sourceEvent.type === 'wheel') {
                 const isPinch = sourceEvent.ctrlKey || sourceEvent.metaKey;
                 if (!isPinch) {
-                    const rawDeltaX = sourceEvent.deltaX ?? 0;
-                    const rawDeltaY = sourceEvent.deltaY ?? 0;
+                    const deltaX = sourceEvent.deltaX ?? 0;
                     const factor = ROTATION_SENSITIVITY * 0.12;
-                    const delta = Math.abs(rawDeltaX) > Math.abs(rawDeltaY)
-                        ? rawDeltaX
-                        : rawDeltaY;
-                    state.mapRotation.lambda += delta * factor;
-
-                    const k = state.mapZoomTransform.k;
-                    state.mapZoomTransform = d3.zoomIdentity.scale(k);
-                    container.call(zoomBehaviour.transform, state.mapZoomTransform);
-                    renderGlobe();
-                    return;
+                    if (Math.abs(deltaX) > 0.1) {
+                        state.mapRotation.lambda += deltaX * factor;
+                        const k = state.mapZoomTransform.k;
+                        state.mapZoomTransform = d3.zoomIdentity.scale(k);
+                        container.call(zoomBehaviour.transform, state.mapZoomTransform);
+                        renderGlobe();
+                        return;
+                    }
                 }
             }
 
@@ -252,19 +254,6 @@ function initializeDrag(container) {
                 state.isGlobeDragging = false;
             })
     );
-
-    container.on('click.globe-focus', event => {
-        if (state.isGlobeDragging) return;
-        if (event.defaultPrevented) return;
-        if (event.target.closest('.map-bubble')) return;
-
-        const point = d3.pointer(event, container.node());
-        const inverted = state.mapProjection.invert(point);
-        if (!inverted) return;
-
-        const [lon] = inverted;
-        animateToRotation({ lambda: -lon, phi: 0 }, state.mapZoomTransform.k, 700);
-    });
 }
 
 function setInitialDimensions() {
