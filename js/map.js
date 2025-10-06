@@ -567,10 +567,28 @@ function applyHighlightToBubble(bubbleNode, { smooth = true } = {}) {
 }
 
 function clearActiveFirmHighlight({ smooth = true } = {}) {
+    if (state.activeHighlightTimeout) {
+        clearTimeout(state.activeHighlightTimeout);
+        state.activeHighlightTimeout = null;
+    }
     if (!state.activeFirmId) return;
     const bubbleNode = findMapBubbleNode(state.activeFirmId);
     resetBubbleAppearance(bubbleNode, { smooth });
     state.activeFirmId = null;
+}
+
+function scheduleActiveHighlightExpiry(firmId) {
+    if (state.activeHighlightTimeout) {
+        clearTimeout(state.activeHighlightTimeout);
+        state.activeHighlightTimeout = null;
+    }
+
+    state.activeHighlightTimeout = setTimeout(() => {
+        state.activeHighlightTimeout = null;
+        if (state.activeFirmId === firmId) {
+            clearActiveFirmHighlight({ smooth: true });
+        }
+    }, 60 * 1000);
 }
 
 function highlightFirmSelection(firm, { openPanel = true, smooth = true } = {}) {
@@ -584,6 +602,7 @@ function highlightFirmSelection(firm, { openPanel = true, smooth = true } = {}) 
 
     state.activeFirmId = firm.id;
     applyHighlightToBubble(bubbleNode, { smooth });
+    scheduleActiveHighlightExpiry(firm.id);
 
     if (openPanel && typeof openFirmPanel === 'function') {
         openFirmPanel(firm);

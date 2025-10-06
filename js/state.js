@@ -45,5 +45,6 @@ const state = {
     },
     newsItems: [],
     newsFilter: '',
-    newsCollapsed: false
+    newsCollapsed: false,
+    activeHighlightTimeout: null
 };
