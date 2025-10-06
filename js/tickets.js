@@ -105,8 +105,8 @@ function renderTicketCard(ticket) {
                 ${inboxTag}
             </div>
             <div class="ticket-card__buttons">
-                <button type="button" class="ticket-card__button" data-ticket-action="resolve" data-ticket-id="${ticket.id}" ${isResolved ? 'disabled' : ''}>
-                    ${isResolved ? 'Resolved' : 'Mark Resolved'}
+                <button type="button" class="ticket-card__button${isResolved ? ' ticket-card__button--active' : ''}" data-ticket-action="resolve" data-ticket-id="${ticket.id}">
+                    ${isResolved ? 'Unresolve' : 'Mark Resolved'}
                 </button>
                 <button type="button" class="ticket-card__button" data-ticket-action="dismiss" data-ticket-id="${ticket.id}">Delete</button>
             </div>
@@ -151,10 +151,17 @@ function handleTicketListClick(event) {
 }
 
 function markTicketResolved(id) {
-    state.resolvedTicketIds.add(id);
-    state.gmailTickets = state.gmailTickets.map(ticket =>
-        ticket.id === id ? { ...ticket, status: 'resolved' } : ticket
-    );
+    if (state.resolvedTicketIds.has(id)) {
+        state.resolvedTicketIds.delete(id);
+        state.gmailTickets = state.gmailTickets.map(ticket =>
+            ticket.id === id ? { ...ticket, status: 'open' } : ticket
+        );
+    } else {
+        state.resolvedTicketIds.add(id);
+        state.gmailTickets = state.gmailTickets.map(ticket =>
+            ticket.id === id ? { ...ticket, status: 'resolved' } : ticket
+        );
+    }
     renderTicketSidebar();
 }
 

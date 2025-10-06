@@ -264,6 +264,16 @@ body {
     background: rgba(239,68,68,0.28);
 }
 
+.ticket-card__button--active {
+    border-color: rgba(34,197,94,0.45);
+    background: rgba(34,197,94,0.22);
+    color: #bbf7d0;
+}
+
+.ticket-card__button--active:hover {
+    background: rgba(34,197,94,0.32);
+}
+
 .view-wrapper {
     flex: 1;
     display: flex;
