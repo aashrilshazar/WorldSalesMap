@@ -2,7 +2,7 @@ import { gmailScopes } from '../../_lib/gmailTickets.js';
 import { generateAuthUrl } from '../../_lib/googleAuth.js';
 
 export const config = {
-    runtime: 'nodejs18.x'
+    runtime: 'nodejs'
 };
 
 export default async function handler(req, res) {

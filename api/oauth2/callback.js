@@ -2,7 +2,7 @@ import { persistTokenFromCode } from '../_lib/googleAuth.js';
 import { forceRefreshTickets } from '../_lib/gmailTickets.js';
 
 export const config = {
-    runtime: 'nodejs18.x'
+    runtime: 'nodejs'
 };
 
 export default async function handler(req, res) {
