@@ -57,7 +57,9 @@ function populateDropdowns() {
     
     // Populate progress stages
     $('progress-stages').innerHTML = 
-        CONFIG.STAGE_NAMES.map(n => `<span>${n}</span>`).join('');
+        CONFIG.STAGE_NAMES.map((n, i) => 
+            `<span class="progress-stage" data-stage="${i + 1}"><strong>${i + 1}</strong> ${n}</span>`
+        ).join('');
 }
 
 async function init() {

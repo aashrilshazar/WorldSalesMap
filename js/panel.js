@@ -39,6 +39,19 @@ function openFirmPanel(firm) {
         ? ((stage - 1) / (CONFIG.STAGE_NAMES.length - 1)) * 100 
         : 100;
     $('progress-fill').style.width = `${progress}%`;
+    const stageColor = getStageColor(stage);
+    document.querySelectorAll('.progress-stage').forEach(el => {
+        const tileStage = parseInt(el.dataset.stage, 10);
+        if (tileStage === stage) {
+            el.classList.add('active');
+            el.style.background = stageColor;
+            el.style.color = '#0f172a';
+        } else {
+            el.classList.remove('active');
+            el.style.background = 'rgba(30,41,59,0.55)';
+            el.style.color = '#94a3b8';
+        }
+    });
     
     // Update people
     renderPeople(firm);
