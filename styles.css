@@ -189,6 +189,15 @@ canvas, #map-container svg {
     color: #bae6fd;
 }
 
+@keyframes map-bubble-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.35);
+    }
+}
+
 .globe-sphere {
     fill: #0f172a;
     stroke: rgba(59,130,246,0.4);
@@ -206,6 +215,13 @@ canvas, #map-container svg {
     fill: none;
     stroke: rgba(148,163,184,0.25);
     stroke-width: 0.4;
+}
+
+.map-bubble.highlighted {
+    fill: #3b82f6 !important;
+    animation: map-bubble-pulse 1.2s ease-in-out 3;
+    transform-box: fill-box;
+    transform-origin: center;
 }
 
 canvas:active, #map-container svg:active {

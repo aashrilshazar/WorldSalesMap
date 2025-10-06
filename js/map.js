@@ -494,9 +494,21 @@ function findMapBubbleNode(firmId) {
 
 function activateFirmBubble(firmId) {
     const bubbleNode = findMapBubbleNode(firmId);
-    if (!bubbleNode) return false;
+    if (!bubbleNode) return null;
     bubbleNode.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    return true;
+    return bubbleNode;
+}
+
+function highlightFirmBubble(target) {
+    const bubbleNode = typeof target === 'string' ? findMapBubbleNode(target) : target;
+    if (!bubbleNode) return;
+    bubbleNode.classList.add('highlighted');
+    bubbleNode.style.fill = '#3b82f6';
+    setTimeout(() => {
+        if (!bubbleNode.isConnected) return;
+        bubbleNode.classList.remove('highlighted');
+        bubbleNode.style.fill = '#22c55e';
+    }, 3600);
 }
 
 function focusFirmOnMap(firm, options = {}) {
@@ -508,7 +520,11 @@ function focusFirmOnMap(firm, options = {}) {
     } = options;
 
     const tryActivate = attemptsLeft => {
-        if (activateFirmBubble(firm.id)) return;
+        const activatedNode = activateFirmBubble(firm.id);
+        if (activatedNode) {
+            highlightFirmBubble(activatedNode);
+            return;
+        }
         if (attemptsLeft <= 0) {
             if (typeof openFirmPanel === 'function') {
                 openFirmPanel(firm);
