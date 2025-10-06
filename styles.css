@@ -307,6 +307,7 @@ body {
 
 .news-bar--collapsed {
     height: 48px;
+    min-height: 0;
 }
 
 .news-bar--collapsed .news-bar__body {
