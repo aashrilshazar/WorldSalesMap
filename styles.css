@@ -416,6 +416,17 @@ body {
     position: relative;
 }
 
+.news-card__link {
+    flex: 1;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.news-card__link:hover .news-card__headline {
+    text-decoration: underline;
+}
+
 .news-card__content {
     flex: 1;
     display: flex;

@@ -7,7 +7,7 @@ const DUMMY_NEWS_ITEMS = [
         source: 'Bloomberg',
         publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
         tags: ['Fund close', 'Deal activity'],
-        url: '#'
+        url: 'https://www.bloomberg.com'
     },
     {
         id: 'news-2',
@@ -17,7 +17,7 @@ const DUMMY_NEWS_ITEMS = [
         source: 'Financial Times',
         publishedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
         tags: ['Add-on deal'],
-        url: '#'
+        url: 'https://www.ft.com'
     },
     {
         id: 'news-3',
@@ -27,7 +27,7 @@ const DUMMY_NEWS_ITEMS = [
         source: 'PE Hub',
         publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
         tags: ['Leadership', 'Promotion'],
-        url: '#'
+        url: 'https://www.pehub.com'
     }
 ];
 
@@ -130,12 +130,14 @@ function renderNewsBar() {
 
             return `
                 <article class="news-card" data-news-id="${item.id}">
-                    <div class="news-card__content">
-                        <div class="news-card__firm">${item.firm}</div>
-                        <div class="news-card__headline">${item.headline}</div>
-                        <div class="news-card__summary">${item.summary}</div>
-                        ${metaHtml ? `<div class="news-card__meta">${metaHtml}</div>` : ''}
-                    </div>
+                    <a class="news-card__link" href="${item.url || '#'}" target="_blank" rel="noopener noreferrer">
+                        <div class="news-card__content">
+                            <div class="news-card__firm">${item.firm}</div>
+                            <div class="news-card__headline">${item.headline}</div>
+                            <div class="news-card__summary">${item.summary}</div>
+                            ${metaHtml ? `<div class="news-card__meta">${metaHtml}</div>` : ''}
+                        </div>
+                    </a>
                     <button class="news-card__delete" type="button" data-action="delete" data-news-id="${item.id}">Delete</button>
                 </article>
             `;
