@@ -1,7 +1,25 @@
 function safeJsonParse(value, fallback) {
     if (!value) return fallback;
+
+    const attempts = [];
+    const trimmed = value.trim();
+
+    attempts.push(value);
+    if (trimmed !== value) attempts.push(trimmed);
+
+    const maybeWrapped = trimmed.replace(/^["']|["']$/g, '');
+    if (maybeWrapped && maybeWrapped !== trimmed) attempts.push(maybeWrapped);
+
+    for (const candidate of attempts) {
+        try {
+            return JSON.parse(candidate);
+        } catch (error) {
+            // try the next candidate variant before giving up
+        }
+    }
+
     try {
-        return JSON.parse(value);
+        return JSON.parse(trimmed.replace(/\n/g, ''));
     } catch (error) {
         console.warn('Failed to parse JSON config value:', error.message);
         return fallback;
