@@ -2,6 +2,7 @@
 function openFirmPanel(firm) {
     state.currentFirm = firm;
     $('firm-panel').classList.add('open');
+    document.body.classList.add('firm-panel-open');
     
     // Update header
     $('panel-firm-name').textContent = firm.name;
@@ -59,6 +60,7 @@ function openFirmPanel(firm) {
 
 function closeFirmPanel() {
     $('firm-panel').classList.remove('open');
+    document.body.classList.remove('firm-panel-open');
     state.currentFirm = null;
 }
 

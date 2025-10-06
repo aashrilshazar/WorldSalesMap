@@ -42,5 +42,8 @@ const state = {
         phi: null,
         scale: null,
         countiesVisible: null
-    }
+    },
+    newsItems: [],
+    newsFilter: '',
+    newsCollapsed: false
 };

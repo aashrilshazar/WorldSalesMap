@@ -13,7 +13,11 @@ function setView(mode) {
         .forEach(b => b.classList.remove('active'));
     document.querySelectorAll('[data-sort]')
         .forEach(b => b.style.display = 'none');
-    
+
+    if (typeof updateNewsBarForView === 'function') {
+        updateNewsBarForView(mode);
+    }
+
     // Show selected view
     switch(mode) {
         case 'map':
@@ -69,9 +73,13 @@ function populateDropdowns() {
 async function init() {
     // Initialize dropdowns
     populateDropdowns();
-    
+
     // Load data
     loadData();
+
+    if (typeof initNewsBar === 'function') {
+        initNewsBar();
+    }
 
     // Initialize Gmail tickets sidebar
     initTicketSidebar();

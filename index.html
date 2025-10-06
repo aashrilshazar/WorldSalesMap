@@ -55,6 +55,22 @@
                 </div>
 
                 <div id="kanban-view" class="view-container"></div>
+
+                <div id="news-bar" class="news-bar">
+                    <div class="news-bar__header">
+                        <div class="news-bar__title">
+                            <span class="news-bar__label">Firm Signal Feed</span>
+                            <span id="news-count" class="news-bar__count"></span>
+                        </div>
+                        <div class="news-bar__controls">
+                            <input id="news-search" class="news-bar__search" type="text" placeholder="Search keywords or firms">
+                            <button id="news-toggle" class="news-bar__toggle" type="button" aria-expanded="true">Minimize</button>
+                        </div>
+                    </div>
+                    <div class="news-bar__body">
+                        <div id="news-list" class="news-bar__list" role="feed" aria-live="polite"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -128,6 +144,7 @@
     <script src="js/kanban.js"></script>
     <script src="js/panel.js"></script>
     <script src="js/tickets.js"></script>
+    <script src="js/newsBar.js"></script>
     <script src="js/events.js"></script>
     <script src="js/main.js"></script>
 </body>
