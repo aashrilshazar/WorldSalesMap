@@ -6,6 +6,8 @@ const state = {
     searchMatches: [],
     currentSort: 'none',
     viewMode: 'map',
+    gmailTickets: [],
+    ticketRefreshInterval: null,
     canvas: null,
     ctx: null,
     camera: { x: 0, y: 0, zoom: 1 },

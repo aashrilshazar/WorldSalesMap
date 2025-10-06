@@ -1,6 +1,10 @@
 // Main initialization and view management
 function setView(mode) {
     state.viewMode = mode;
+    const sidebar = $('ticket-sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('hidden', mode === 'kanban');
+    }
     
     // Hide all views
     document.querySelectorAll('.view-container')
@@ -68,6 +72,9 @@ async function init() {
     
     // Load data
     loadData();
+
+    // Initialize Gmail tickets sidebar
+    initTicketSidebar();
     
     // Setup canvas
     setupCanvas();
