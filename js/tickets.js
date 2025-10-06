@@ -35,21 +35,19 @@ async function loadTicketsFromServer() {
         }
         const data = await response.json();
         const tickets = Array.isArray(data.tickets) ? data.tickets : [];
-        const { resolvedTicketIds, dismissedTicketIds } = state;
-
-        state.gmailTickets = tickets
-            .filter(t => !dismissedTicketIds.has(t.id))
-            .map(t => ({
-                ...t,
-                status: resolvedTicketIds.has(t.id) ? 'resolved' : (t.status || 'open')
-            }));
 
         state.resolvedTicketIds = new Set(
-            state.gmailTickets
+            tickets
                 .filter(ticket => ticket.status === 'resolved')
                 .map(ticket => ticket.id)
         );
-        state.dismissedTicketIds = new Set();
+        state.dismissedTicketIds = new Set(
+            tickets
+                .filter(ticket => ticket.status === 'dismissed')
+                .map(ticket => ticket.id)
+        );
+
+        state.gmailTickets = tickets.filter(ticket => ticket.status !== 'dismissed');
     } catch (error) {
         console.error('Failed to load Gmail tickets', error);
         state.ticketError = error.message || 'Unable to load Gmail tickets';

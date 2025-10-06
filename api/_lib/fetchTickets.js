@@ -1,12 +1,11 @@
 import { google } from 'googleapis';
 import {
-    GMAIL_ACCOUNTS,
+    GMAIL_INBOXES,
     GMAIL_QUERIES,
     GMAIL_MAX_RESULTS,
-    GMAIL_CACHE_SECONDS,
-    ACCOUNT_REFRESH_TOKENS
+    GMAIL_CACHE_SECONDS
 } from './config.js';
-import { getOAuthClient } from './googleClient.js';
+import { getOAuthClientForInbox } from './googleClient.js';
 import { getCache, setCache, deleteCache } from './cache.js';
 import { getTicketStatuses } from './storage.js';
 
@@ -23,7 +22,7 @@ export async function fetchTickets() {
     }
 
     const accountResults = await Promise.all(
-        GMAIL_ACCOUNTS.map(account => fetchAccountTickets(account))
+        GMAIL_INBOXES.map(account => fetchAccountTickets(account))
     );
 
     const combined = accountResults.flat();
@@ -46,13 +45,7 @@ export async function fetchTickets() {
 }
 
 async function fetchAccountTickets(account) {
-    const refreshToken = ACCOUNT_REFRESH_TOKENS[account];
-    if (!refreshToken) {
-        console.warn(`No refresh token configured for account ${account}`);
-        return [];
-    }
-
-    const auth = getOAuthClient(refreshToken);
+    const auth = getOAuthClientForInbox(account);
     const gmail = google.gmail({ version: 'v1', auth });
 
     const listResponse = await gmail.users.messages.list({
