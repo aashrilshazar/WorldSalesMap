@@ -1243,7 +1243,7 @@ window.PE_FIRMS_DATA = [
       "focus": [
         "Software"
       ],
-      "hqLocation": "Manhattan Be...",
+      "hqLocation": "Manhattan Beach",
       "people": []
     },
     {
@@ -3678,7 +3678,7 @@ window.PE_FIRMS_DATA = [
       "focus": [
         "Software"
       ],
-      "hqLocation": "Sunny Isles Be...",
+      "hqLocation": "Sunny Isles Beach",
       "people": []
     },
     {
@@ -4107,7 +4107,7 @@ window.PE_FIRMS_DATA = [
       "focus": [
         "Software"
       ],
-      "hqLocation": "Newtown Squa...",
+      "hqLocation": "Newtown Square",
       "people": []
     },
     {
@@ -6870,7 +6870,7 @@ window.PE_FIRMS_DATA = [
       "focus": [
         "Software"
       ],
-      "hqLocation": "Le Relecq Kerh...",
+      "hqLocation": "Le Relecq-Kerhuon",
       "people": []
     },
     {
@@ -8269,7 +8269,7 @@ window.PE_FIRMS_DATA = [
       "focus": [
         "Software"
       ],
-      "hqLocation": "Cottonwood H...",
+      "hqLocation": "Cottonwood Heights",
       "people": []
     },
     {
@@ -8854,7 +8854,7 @@ window.PE_FIRMS_DATA = [
       "focus": [
         "Software"
       ],
-      "hqLocation": "West Palm Bea...",
+      "hqLocation": "West Palm Beach",
       "people": []
     },
     {
