@@ -1,5 +1,6 @@
 import { validateConfig } from '../../_lib/config.js';
 import { setTicketStatus, clearTicketStatus } from '../../_lib/storage.js';
+import { invalidateTicketCache } from '../../_lib/fetchTickets.js';
 
 export const config = {
     runtime: 'nodejs'
@@ -40,6 +41,7 @@ export default async function handler(req, res) {
         } else {
             await setTicketStatus(id, { status });
         }
+        invalidateTicketCache();
         res.status(200).json({ ticket: { id, status } });
     } catch (error) {
         console.error('Failed to persist ticket status', error);

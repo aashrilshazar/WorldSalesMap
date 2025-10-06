@@ -14,3 +14,7 @@ export function getCache(key) {
     }
     return entry.value;
 }
+
+export function deleteCache(key) {
+    cache.delete(key);
+}

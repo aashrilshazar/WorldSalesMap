@@ -7,13 +7,17 @@ import {
     ACCOUNT_REFRESH_TOKENS
 } from './config.js';
 import { getOAuthClient } from './googleClient.js';
-import { getCache, setCache } from './cache.js';
+import { getCache, setCache, deleteCache } from './cache.js';
 import { getTicketStatuses } from './storage.js';
 
-const cacheKey = 'gmail_tickets';
+export const TICKETS_CACHE_KEY = 'gmail_tickets';
+
+export function invalidateTicketCache() {
+    deleteCache(TICKETS_CACHE_KEY);
+}
 
 export async function fetchTickets() {
-    const cached = getCache(cacheKey);
+    const cached = getCache(TICKETS_CACHE_KEY);
     if (cached) {
         return cached;
     }
@@ -37,7 +41,7 @@ export async function fetchTickets() {
         .filter(ticket => ticket.status !== 'dismissed')
         .sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt));
 
-    setCache(cacheKey, tickets, GMAIL_CACHE_SECONDS);
+    setCache(TICKETS_CACHE_KEY, tickets, GMAIL_CACHE_SECONDS);
     return tickets;
 }
 
