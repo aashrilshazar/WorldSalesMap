@@ -3,6 +3,7 @@ const state = {
     firms: [],
     cities: [],
     currentFirm: null,
+    searchMatches: [],
     currentSort: 'none',
     viewMode: 'map',
     canvas: null,

@@ -5,6 +5,14 @@ function setupEventListeners() {
     
     // Search
     $('search-input').oninput = handleSearch;
+    $('search-input').onkeydown = handleSearchKeydown;
+    $('search-input').onfocus = e => updateSearchResults(e.target.value);
+    const resultsEl = $('search-results');
+    if (resultsEl) {
+        resultsEl.onclick = handleSearchResultClick;
+        resultsEl.onkeydown = handleSearchResultKeydown;
+    }
+    document.addEventListener('click', handleDocumentClick);
     
     // View buttons
     $('view-map').onclick = () => setView('map');
@@ -115,25 +123,80 @@ function handleHover(e) {
     }
 }
 
-function handleSearch(e) {
-    const query = e.target.value.toLowerCase();
-    if (query.length < 2) return;
-    
-    const found = state.firms.find(f => 
-        f.name.toLowerCase().includes(query)
-    );
-    
-    if (!found) return;
-    
+function clearSearchResults() {
+    const container = $('search-results');
+    if (!container) return;
+    container.innerHTML = '';
+    container.classList.remove('visible');
+    state.searchMatches = [];
+}
+
+function updateSearchResults(rawQuery) {
+    const container = $('search-results');
+    if (!container) return;
+    const query = (rawQuery || '').trim().toLowerCase();
+
+    if (!query) {
+        clearSearchResults();
+        return;
+    }
+
+    const matches = state.firms
+        .filter(f => f.name && f.name.toLowerCase().startsWith(query))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    state.searchMatches = matches;
+
+    if (!matches.length) {
+        clearSearchResults();
+        return;
+    }
+
+    container.innerHTML = matches
+        .map(f => `<div class="search-result-item" data-firm-id="${f.id}" tabindex="0">${f.name}</div>`)
+        .join('');
+    container.classList.add('visible');
+}
+
+function applySearchSelection(firm) {
+    if (!firm) return;
+
+    const input = $('search-input');
+    if (input) {
+        input.value = firm.name;
+    }
+
+    clearSearchResults();
+
     if (state.viewMode === 'scatter') {
-        animateToFirm(found);
-    } else if (state.viewMode === 'map' && found.hqLocation) {
-        if (typeof focusFirmOnMap === 'function') {
-            focusFirmOnMap(found);
-        } else if (typeof zoomToLocation === 'function') {
-            zoomToLocation(found);
+        animateToFirm(firm);
+        return;
+    }
+
+    if (state.viewMode === 'map') {
+        if (firm.hqLocation) {
+            if (typeof focusFirmOnMap === 'function') {
+                focusFirmOnMap(firm);
+            } else if (typeof zoomToLocation === 'function') {
+                zoomToLocation(firm);
+            }
+        } else if (typeof openFirmPanel === 'function') {
+            openFirmPanel(firm);
         }
     }
+}
+
+function handleSearch(e) {
+    const value = e.target.value || '';
+    updateSearchResults(value);
+
+    const query = value.trim().toLowerCase();
+    if (!query) return;
+
+    const exactMatch = state.firms.find(f => f.name && f.name.toLowerCase() === query);
+    if (!exactMatch) return;
+
+    applySearchSelection(exactMatch);
 }
 
 function animateToFirm(firm) {
@@ -158,6 +221,43 @@ function animateToFirm(firm) {
     
     animateTo();
     state.hoveredFirm = firm;
+}
+
+function handleSearchResultClick(e) {
+    const item = e.target.closest('.search-result-item');
+    if (!item) return;
+    const firm = state.firms.find(f => f.id === item.dataset.firmId);
+    if (!firm) return;
+    applySearchSelection(firm);
+    e.stopPropagation();
+}
+
+function handleSearchResultKeydown(e) {
+    if (e.key !== 'Enter') return;
+    const item = e.target.closest('.search-result-item');
+    if (!item) return;
+    const firm = state.firms.find(f => f.id === item.dataset.firmId);
+    if (!firm) return;
+    e.preventDefault();
+    applySearchSelection(firm);
+}
+
+function handleSearchKeydown(e) {
+    if (e.key === 'Enter') {
+        const [firstMatch] = state.searchMatches || [];
+        if (firstMatch) {
+            e.preventDefault();
+            applySearchSelection(firstMatch);
+        }
+    } else if (e.key === 'Escape') {
+        clearSearchResults();
+    }
+}
+
+function handleDocumentClick(e) {
+    const searchBox = $('search-box');
+    if (searchBox && searchBox.contains(e.target)) return;
+    clearSearchResults();
 }
 
 function handleResize() {
