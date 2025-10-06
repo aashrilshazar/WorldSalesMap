@@ -43,6 +43,13 @@ async function loadTicketsFromServer() {
                 ...t,
                 status: resolvedTicketIds.has(t.id) ? 'resolved' : (t.status || 'open')
             }));
+
+        state.resolvedTicketIds = new Set(
+            state.gmailTickets
+                .filter(ticket => ticket.status === 'resolved')
+                .map(ticket => ticket.id)
+        );
+        state.dismissedTicketIds = new Set();
     } catch (error) {
         console.error('Failed to load Gmail tickets', error);
         state.ticketError = error.message || 'Unable to load Gmail tickets';
@@ -136,6 +143,22 @@ function formatRelativeTime(isoString) {
     return `${weeks}w ago`;
 }
 
+async function persistTicketStatus(id, status) {
+    try {
+        const response = await fetch(`/api/tickets/${encodeURIComponent(id)}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}`);
+        }
+        return response.json();
+    } catch (error) {
+        throw error;
+    }
+}
+
 function handleTicketListClick(event) {
     const actionEl = event.target.closest('[data-ticket-action]');
     if (!actionEl) return;
@@ -150,24 +173,57 @@ function handleTicketListClick(event) {
     }
 }
 
-function markTicketResolved(id) {
-    if (state.resolvedTicketIds.has(id)) {
+async function markTicketResolved(id) {
+    const wasResolved = state.resolvedTicketIds.has(id);
+    const nextStatus = wasResolved ? 'open' : 'resolved';
+
+    if (wasResolved) {
         state.resolvedTicketIds.delete(id);
-        state.gmailTickets = state.gmailTickets.map(ticket =>
-            ticket.id === id ? { ...ticket, status: 'open' } : ticket
-        );
     } else {
         state.resolvedTicketIds.add(id);
-        state.gmailTickets = state.gmailTickets.map(ticket =>
-            ticket.id === id ? { ...ticket, status: 'resolved' } : ticket
-        );
     }
+
+    state.gmailTickets = state.gmailTickets.map(ticket =>
+        ticket.id === id ? { ...ticket, status: nextStatus } : ticket
+    );
     renderTicketSidebar();
+
+    try {
+        await persistTicketStatus(id, nextStatus);
+    } catch (error) {
+        console.error('Failed to persist ticket status', error);
+        if (wasResolved) {
+            state.resolvedTicketIds.add(id);
+            state.gmailTickets = state.gmailTickets.map(ticket =>
+                ticket.id === id ? { ...ticket, status: 'resolved' } : ticket
+            );
+        } else {
+            state.resolvedTicketIds.delete(id);
+            state.gmailTickets = state.gmailTickets.map(ticket =>
+                ticket.id === id ? { ...ticket, status: 'open' } : ticket
+            );
+        }
+        renderTicketSidebar();
+    }
 }
 
-function dismissTicket(id) {
+async function dismissTicket(id) {
+    const ticket = state.gmailTickets.find(t => t.id === id);
+    if (!ticket) return;
+
     state.dismissedTicketIds.add(id);
     state.resolvedTicketIds.delete(id);
-    state.gmailTickets = state.gmailTickets.filter(ticket => ticket.id !== id);
+    state.gmailTickets = state.gmailTickets.filter(t => t.id !== id);
     renderTicketSidebar();
+
+    try {
+        await persistTicketStatus(id, 'dismissed');
+    } catch (error) {
+        console.error('Failed to dismiss ticket', error);
+        state.dismissedTicketIds.delete(id);
+        // Reinsert ticket and sort by received time
+        state.gmailTickets = [...state.gmailTickets, { ...ticket, status: 'open' }]
+            .sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+        renderTicketSidebar();
+    }
 }

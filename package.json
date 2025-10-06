@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "googleapis": "^135.0.0"
+    "@upstash/redis": "^1.28.0",
+    "googleapis": "^135.0.0",
+    "vercel": "^48.2.0"
   }
 }

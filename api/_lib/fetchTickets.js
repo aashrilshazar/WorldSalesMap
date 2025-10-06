@@ -8,6 +8,7 @@ import {
 } from './config.js';
 import { getOAuthClient } from './googleClient.js';
 import { getCache, setCache } from './cache.js';
+import { getTicketStatuses } from './storage.js';
 
 const cacheKey = 'gmail_tickets';
 
@@ -21,8 +22,19 @@ export async function fetchTickets() {
         GMAIL_ACCOUNTS.map(account => fetchAccountTickets(account))
     );
 
-    const tickets = accountResults
-        .flat()
+    const combined = accountResults.flat();
+    const statusMap = await getTicketStatuses(combined.map(t => t.id));
+
+    const tickets = combined
+        .map(ticket => {
+            const stored = statusMap.get(ticket.id);
+            if (!stored) return ticket;
+            return {
+                ...ticket,
+                status: stored.status || ticket.status
+            };
+        })
+        .filter(ticket => ticket.status !== 'dismissed')
         .sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt));
 
     setCache(cacheKey, tickets, GMAIL_CACHE_SECONDS);
