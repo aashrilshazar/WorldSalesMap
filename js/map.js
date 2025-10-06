@@ -223,11 +223,17 @@ function updateMapBubbles() {
             }
         })
         .on('mouseover', function(event, d) {
-            d3.select(this)
-                .transition()
-                .duration(200)
-                .attr('r', Math.max(d.radius * 1.25, MAP_BUBBLE_MIN_RADIUS * 1.5))
-                .style('fill', '#4ade80');
+            if (state.activeFirmId === d.id) {
+                d3.select(this)
+                    .interrupt('highlight')
+                    .style('fill', '#60a5fa');
+            } else {
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr('r', Math.max(d.radius * 1.25, MAP_BUBBLE_MIN_RADIUS * 1.5))
+                    .style('fill', '#4ade80');
+            }
 
             const content = `<strong>${d.name}</strong><br>
                 AUM: $${d.aum.toFixed(1)}B<br>
@@ -236,11 +242,17 @@ function updateMapBubbles() {
             showTooltip(event, content);
         })
         .on('mouseout', function(event, d) {
-            d3.select(this)
-                .transition()
-                .duration(200)
-                .attr('r', d.radius)
-                .style('fill', '#22c55e');
+            if (state.activeFirmId === d.id) {
+                d3.select(this)
+                    .interrupt('highlight')
+                    .style('fill', '#60a5fa');
+            } else {
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr('r', d.radius)
+                    .style('fill', '#22c55e');
+            }
             hideTooltip();
         });
 
@@ -250,6 +262,8 @@ function updateMapBubbles() {
         .text(d => d.name);
 
     groups.exit().remove();
+
+    restoreActiveBubbleHighlight();
 }
 
 function scheduleGlobeRender(forceStatic = false) {
@@ -496,40 +510,93 @@ function findMapBubbleNode(firmId) {
     return node;
 }
 
-function activateFirmBubble(firmId) {
-    const bubbleNode = findMapBubbleNode(firmId);
-    if (!bubbleNode) return null;
-    bubbleNode.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    return bubbleNode;
+function animateBubbleRadius(bubbleNode, radius, ease = d3.easeCubicOut) {
+    d3.select(bubbleNode)
+        .interrupt('highlight')
+        .transition('highlight')
+        .duration(320)
+        .ease(ease)
+        .attr('r', radius);
 }
 
-function highlightFirmBubble(target) {
-    const bubbleNode = typeof target === 'string' ? findMapBubbleNode(target) : target;
+function resetBubbleAppearance(bubbleNode, { smooth = true } = {}) {
     if (!bubbleNode) return;
-    if (bubbleNode.dataset.highlightTimeout) {
-        clearTimeout(Number(bubbleNode.dataset.highlightTimeout));
-    }
-    const recordedRadius = bubbleNode.dataset.originalRadius
+    const originalRadius = bubbleNode.dataset.originalRadius
         ? Number(bubbleNode.dataset.originalRadius)
         : Number(bubbleNode.getAttribute('r'));
-    if (!bubbleNode.dataset.originalRadius && !Number.isNaN(recordedRadius)) {
-        bubbleNode.dataset.originalRadius = String(recordedRadius);
+    if (Number.isNaN(originalRadius)) return;
+
+    if (smooth) {
+        d3.select(bubbleNode)
+            .interrupt('highlight')
+            .transition('highlight')
+            .duration(320)
+            .ease(d3.easeCubicInOut)
+            .attr('r', originalRadius)
+            .on('end', () => {
+                delete bubbleNode.dataset.originalRadius;
+            });
+    } else {
+        bubbleNode.setAttribute('r', originalRadius);
+        delete bubbleNode.dataset.originalRadius;
     }
-    if (!Number.isNaN(recordedRadius) && recordedRadius > 0) {
-        bubbleNode.setAttribute('r', recordedRadius * 2);
+
+    bubbleNode.style.fill = '#22c55e';
+    bubbleNode.classList.remove('highlighted');
+}
+
+function applyHighlightToBubble(bubbleNode, { smooth = true } = {}) {
+    if (!bubbleNode) return;
+    const currentRadius = Number(bubbleNode.getAttribute('r'));
+    if (Number.isNaN(currentRadius)) return;
+
+    if (!bubbleNode.dataset.originalRadius) {
+        bubbleNode.dataset.originalRadius = String(currentRadius);
     }
-    bubbleNode.classList.add('highlighted');
+    const originalRadius = Number(bubbleNode.dataset.originalRadius || currentRadius);
+    const targetRadius = Math.max(originalRadius * 1.55, MAP_BUBBLE_MIN_RADIUS * 1.8);
+
+    if (smooth) {
+        animateBubbleRadius(bubbleNode, targetRadius);
+    } else {
+        bubbleNode.setAttribute('r', targetRadius);
+    }
+
     bubbleNode.style.fill = '#60a5fa';
-    const timeoutId = setTimeout(() => {
-        if (!bubbleNode.isConnected) return;
-        bubbleNode.classList.remove('highlighted');
-        if (bubbleNode.dataset.originalRadius) {
-            bubbleNode.setAttribute('r', bubbleNode.dataset.originalRadius);
-        }
-        bubbleNode.style.fill = '#22c55e';
-        delete bubbleNode.dataset.highlightTimeout;
-    }, 3600);
-    bubbleNode.dataset.highlightTimeout = String(timeoutId);
+    bubbleNode.classList.add('highlighted');
+}
+
+function clearActiveFirmHighlight({ smooth = true } = {}) {
+    if (!state.activeFirmId) return;
+    const bubbleNode = findMapBubbleNode(state.activeFirmId);
+    resetBubbleAppearance(bubbleNode, { smooth });
+    state.activeFirmId = null;
+}
+
+function highlightFirmSelection(firm, { openPanel = true, smooth = true } = {}) {
+    if (!firm) return false;
+    const bubbleNode = findMapBubbleNode(firm.id);
+    if (!bubbleNode) return false;
+
+    if (state.activeFirmId && state.activeFirmId !== firm.id) {
+        clearActiveFirmHighlight({ smooth });
+    }
+
+    state.activeFirmId = firm.id;
+    applyHighlightToBubble(bubbleNode, { smooth });
+
+    if (openPanel && typeof openFirmPanel === 'function') {
+        openFirmPanel(firm);
+    }
+
+    return true;
+}
+
+function restoreActiveBubbleHighlight() {
+    if (!state.activeFirmId) return;
+    const bubbleNode = findMapBubbleNode(state.activeFirmId);
+    if (!bubbleNode) return;
+    applyHighlightToBubble(bubbleNode, { smooth: false });
 }
 
 function focusFirmOnMap(firm, options = {}) {
@@ -537,38 +604,31 @@ function focusFirmOnMap(firm, options = {}) {
     const {
         zoom = 8,
         duration = 900,
-        activationAttempts = 3
+        highlightAttempts = 4,
+        openPanel = true
     } = options;
 
-    const tryActivate = attemptsLeft => {
-        const activatedNode = activateFirmBubble(firm.id);
-        if (activatedNode) {
-            highlightFirmBubble(activatedNode);
+    const schedule = typeof requestAnimationFrame === 'function'
+        ? requestAnimationFrame
+        : (fn => setTimeout(fn, 50));
+
+    const attemptHighlight = attemptsLeft => {
+        if (highlightFirmSelection(firm, { openPanel, smooth: attemptsLeft !== highlightAttempts })) {
             return;
         }
         if (attemptsLeft <= 0) {
-            if (typeof openFirmPanel === 'function') {
+            if (openPanel && typeof openFirmPanel === 'function') {
                 openFirmPanel(firm);
             }
             return;
         }
-        if (typeof requestAnimationFrame === 'function') {
-            requestAnimationFrame(() => tryActivate(attemptsLeft - 1));
-        } else {
-            setTimeout(() => tryActivate(attemptsLeft - 1), 50);
-        }
+        schedule(() => attemptHighlight(attemptsLeft - 1));
     };
 
     zoomToLocation(firm, {
         zoom,
         duration,
-        onComplete: () => {
-            if (typeof requestAnimationFrame !== 'function') {
-                tryActivate(activationAttempts);
-                return;
-            }
-            requestAnimationFrame(() => tryActivate(activationAttempts));
-        }
+        onComplete: () => schedule(() => attemptHighlight(highlightAttempts))
     });
 }
 
