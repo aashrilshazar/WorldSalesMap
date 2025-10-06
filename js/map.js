@@ -216,7 +216,11 @@ function updateMapBubbles() {
         .style('fill', '#22c55e')
         .on('click', (event, d) => {
             event.stopPropagation();
-            openFirmPanel(d);
+            if (typeof focusFirmOnMap === 'function') {
+                focusFirmOnMap(d);
+            } else if (typeof openFirmPanel === 'function') {
+                openFirmPanel(d);
+            }
         })
         .on('mouseover', function(event, d) {
             d3.select(this)

@@ -140,6 +140,7 @@ body {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
+    align-items: flex-start;
 }
 
 .ticket-card__firm {
@@ -165,8 +166,9 @@ body {
     padding: 0.3rem 0.65rem;
     border-radius: 999px;
     border: 1px solid transparent;
-    background: rgba(59,130,246,0.15);
+    background: rgba(59,130,246,0.18);
     color: #bfdbfe;
+    white-space: nowrap;
 }
 
 .ticket-card__badge--high {
