@@ -5,6 +5,8 @@ export const config = {
     runtime: 'nodejs'
 };
 
+const POST_AUTH_REDIRECT = process.env.POST_AUTH_REDIRECT || '/';
+
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
         res.setHeader('Allow', 'GET');
@@ -19,7 +21,7 @@ export default async function handler(req, res) {
     try {
         await persistTokenFromCode(code);
         await forceRefreshTickets();
-        res.status(200).send('Authorization successful. You can close this window.');
+        res.redirect(302, POST_AUTH_REDIRECT);
     } catch (error) {
         console.error('OAuth callback error', error);
         res.status(500).send(error.message || 'Failed to complete authorization.');

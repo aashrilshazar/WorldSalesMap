@@ -11,6 +11,7 @@ Configure these under **Vercel → Settings → Environment Variables** (and in 
 | `GOOGLE_CLIENT_ID` | OAuth client ID from Google Cloud console |
 | `GOOGLE_CLIENT_SECRET` | OAuth client secret |
 | `GOOGLE_REDIRECT_URI` | Must contain `https://<your-domain>/api/oauth2/callback` (add localhost variant for local dev) |
+| `POST_AUTH_REDIRECT` | Optional URL to send users back to after OAuth completes (defaults to `/`) |
 | `GMAIL_INBOX_USER` | Gmail user to monitor (usually `me`) |
 | `GMAIL_FETCH_QUERY` | Gmail search query to filter inbound mail |
 | `GMAIL_MAX_RESULTS` | Cap on messages pulled per refresh (default 50) |
