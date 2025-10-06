@@ -288,8 +288,8 @@ body {
     left: 0;
     right: var(--news-panel-offset);
     bottom: 0;
-    height: 20vh;
-    min-height: 180px;
+    height: 22vh;
+    min-height: 200px;
     background: rgba(15,23,42,0.94);
     border-top: 1px solid rgba(59,130,246,0.3);
     box-shadow: 0 -18px 32px rgba(8,11,20,0.5);
@@ -306,10 +306,19 @@ body {
 }
 
 .news-bar--collapsed {
-    height: 56px;
+    height: 48px;
 }
 
 .news-bar--collapsed .news-bar__body {
+    display: none;
+}
+
+.news-bar--collapsed .news-bar__header {
+    padding: 0.6rem 1rem;
+}
+
+.news-bar--collapsed .news-bar__count,
+.news-bar--collapsed .news-bar__search {
     display: none;
 }
 
