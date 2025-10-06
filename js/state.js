@@ -7,6 +7,8 @@ const state = {
     currentSort: 'none',
     viewMode: 'map',
     gmailTickets: [],
+    ticketError: null,
+    ticketRefreshInterval: null,
     canvas: null,
     ctx: null,
     camera: { x: 0, y: 0, zoom: 1 },
