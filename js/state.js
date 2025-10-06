@@ -8,6 +8,8 @@ const state = {
     viewMode: 'map',
     gmailTickets: [],
     ticketRefreshInterval: null,
+    ticketError: null,
+    ticketErrorStatus: null,
     canvas: null,
     ctx: null,
     camera: { x: 0, y: 0, zoom: 1 },

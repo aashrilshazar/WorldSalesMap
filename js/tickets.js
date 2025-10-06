@@ -1,5 +1,7 @@
 // Gmail ticket sidebar rendering
-function initTicketSidebar() {
+const TICKET_REFRESH_MS = 60_000;
+
+async function initTicketSidebar() {
     const listEl = $('tickets-list');
     if (!listEl) return;
 
@@ -8,108 +10,121 @@ function initTicketSidebar() {
         listEl.dataset.bound = 'true';
     }
 
-    state.gmailTickets = createMockTickets();
-    renderTicketSidebar();
+    await loadTicketsFromServer();
 
     if (!state.ticketRefreshInterval) {
-        state.ticketRefreshInterval = setInterval(renderTicketSidebar, 60000);
+        state.ticketRefreshInterval = setInterval(loadTicketsFromServer, TICKET_REFRESH_MS);
     }
 }
 
-function createMockTickets() {
-    const now = Date.now();
-    return [
-        {
-            id: 'ticket-1',
-            firmName: 'Atlas Equity Partners',
-            firmDomain: 'atlaspartners.com',
-            inbox: 'deals@atlasequity.com',
-            sender: 'amanda.lee@atlaspartners.com',
-            subject: 'Follow-up on data room access',
-            receivedAt: new Date(now - 45 * 60 * 1000).toISOString(),
-            status: 'open',
-            priority: 'high',
-            type: 'new_email',
-            lastMeetingDaysAgo: 12,
-            followUpCadenceDays: 7,
-            threadUrl: '#'
-        },
-        {
-            id: 'ticket-2',
-            firmName: 'Northwind Capital',
-            firmDomain: 'northwindcap.com',
-            inbox: 'intro@northwindcap.com',
-            sender: 'marcus@northwindcap.com',
-            subject: 'Agenda for Thursday sync',
-            receivedAt: new Date(now - 3 * 60 * 60 * 1000).toISOString(),
-            status: 'open',
-            priority: 'medium',
-            type: 'new_email',
-            lastMeetingDaysAgo: 4,
-            followUpCadenceDays: 14,
-            threadUrl: '#'
-        },
-        {
-            id: 'ticket-3',
-            firmName: 'Summit Ridge Advisors',
-            firmDomain: 'summitridge.com',
-            inbox: 'team@summitridge.com',
-            sender: 'jen.cooper@summitridge.com',
-            subject: 'Next steps after diligence session',
-            receivedAt: new Date(now - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            status: 'open',
-            priority: 'low',
-            type: 'follow_up',
-            lastMeetingDaysAgo: 16,
-            followUpCadenceDays: 14,
-            threadUrl: '#'
-        },
-        {
-            id: 'ticket-4',
-            firmName: 'Harborlight Partners',
-            firmDomain: 'harborlight.io',
-            inbox: 'hello@harborlight.io',
-            sender: 'cecilia@harborlight.io',
-            subject: 'Shared portfolio metrics',
-            receivedAt: new Date(now - 5 * 60 * 60 * 1000).toISOString(),
-            status: 'resolved',
-            priority: 'medium',
-            type: 'new_email',
-            lastMeetingDaysAgo: 2,
-            followUpCadenceDays: 10,
-            threadUrl: '#'
+async function loadTicketsFromServer() {
+    state.ticketError = null;
+    state.ticketErrorStatus = null;
+    try {
+        const response = await fetch('/api/tickets');
+        if (!response.ok) {
+            const message = await extractErrorMessage(response);
+            const error = new Error(message || `Request failed with ${response.status}`);
+            error.status = response.status;
+            throw error;
         }
-    ];
+        const payload = await response.json();
+        state.gmailTickets = Array.isArray(payload.tickets) ? payload.tickets : [];
+    } catch (error) {
+        console.error('Failed to load tickets:', error);
+        state.ticketError = error.message || 'Unable to load Gmail tickets';
+        state.ticketErrorStatus = error.status || null;
+        state.gmailTickets = state.gmailTickets || [];
+    }
+    renderTicketSidebar();
 }
 
 function handleTicketListClick(event) {
     const actionEl = event.target.closest('[data-ticket-action]');
-    if (!actionEl) return;
+    if (actionEl) {
+        const { ticketAction: action, ticketId: id } = actionEl.dataset;
+        if (!id) return;
 
-    const { ticketAction: action, ticketId: id } = actionEl.dataset;
-    if (!id) return;
+        if (action === 'resolve') {
+            markTicketResolved(id);
+        } else if (action === 'reopen') {
+            reopenTicket(id);
+        }
+        return;
+    }
 
-    if (action === 'resolve') {
-        markTicketResolved(id);
-    } else if (action === 'reopen') {
-        reopenTicket(id);
+    const connectEl = event.target.closest('[data-ticket-connect]');
+    if (connectEl) {
+        beginGmailAuthorization();
     }
 }
 
-function markTicketResolved(id) {
-    const ticket = state.gmailTickets.find(t => t.id === id);
-    if (!ticket || ticket.status === 'resolved') return;
-    ticket.status = 'resolved';
-    ticket.resolvedAt = new Date().toISOString();
+async function markTicketResolved(id) {
+    await mutateTicketStatus(id, 'resolve');
+}
+
+async function reopenTicket(id) {
+    await mutateTicketStatus(id, 'reopen');
+}
+
+async function mutateTicketStatus(id, action) {
+    state.ticketError = null;
+    state.ticketErrorStatus = null;
+    try {
+        const response = await fetch(`/api/tickets/${encodeURIComponent(id)}/${action}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) {
+            const message = await extractErrorMessage(response);
+            const error = new Error(message || `Failed to ${action} ticket`);
+            error.status = response.status;
+            throw error;
+        }
+        await loadTicketsFromServer();
+        return;
+    } catch (error) {
+        console.error(`Failed to ${action} ticket`, error);
+        state.ticketError = error.message || `Unable to ${action} ticket`;
+        state.ticketErrorStatus = error.status || null;
+    }
     renderTicketSidebar();
 }
 
-function reopenTicket(id) {
-    const ticket = state.gmailTickets.find(t => t.id === id);
-    if (!ticket || ticket.status !== 'resolved') return;
-    ticket.status = 'open';
-    delete ticket.resolvedAt;
-    renderTicketSidebar();
+async function beginGmailAuthorization() {
+    try {
+        const response = await fetch('/api/auth/google/url');
+        if (!response.ok) {
+            const message = await extractErrorMessage(response);
+            throw new Error(message || 'Failed to generate authorization URL');
+        }
+        const payload = await response.json();
+        if (payload?.url) {
+            window.open(payload.url, '_blank', 'noopener');
+            setTimeout(loadTicketsFromServer, 5000);
+        }
+    } catch (error) {
+        console.error('Authorization start failed', error);
+        state.ticketError = error.message || 'Unable to begin Gmail authorization';
+        state.ticketErrorStatus = error.status || null;
+        renderTicketSidebar();
+    }
+}
+
+async function extractErrorMessage(response) {
+    const contentType = response.headers.get('content-type') || '';
+    const raw = await response.text();
+    if (contentType.includes('application/json')) {
+        try {
+            const data = JSON.parse(raw);
+            if (data && typeof data.error === 'string') {
+                return data.error;
+            }
+        } catch (err) {
+            console.warn('Failed to parse JSON error response', err);
+        }
+    }
+    return raw;
 }
 
 function renderTicketSidebar() {
@@ -120,6 +135,15 @@ function renderTicketSidebar() {
     const unresolved = state.gmailTickets.filter(t => t.status !== 'resolved');
     countEl.textContent = unresolved.length ? `${unresolved.length} unresolved` : 'All caught up';
 
+    if (state.ticketError) {
+        if (state.ticketErrorStatus === 401) {
+            listEl.innerHTML = renderAuthorizationPrompt(state.ticketError);
+        } else {
+            listEl.innerHTML = `<div class="ticket-error">${state.ticketError}</div>`;
+        }
+        return;
+    }
+
     if (!state.gmailTickets.length) {
         listEl.innerHTML = '<div class="ticket-empty">No tickets yet. Connect a Gmail inbox to get started.</div>';
         return;
@@ -128,6 +152,16 @@ function renderTicketSidebar() {
     const ordered = [...state.gmailTickets].sort(sortTicketsForSidebar);
     const cards = ordered.map(renderTicketCard).join('');
     listEl.innerHTML = (unresolved.length ? '' : '<div class="ticket-empty">No active follow-ups right now.</div>') + cards;
+}
+
+function renderAuthorizationPrompt(message) {
+    const text = message || 'Authorize Gmail to view tickets.';
+    return `
+        <div class="ticket-connect">
+            <div class="ticket-error">${text}</div>
+            <button type="button" class="ticket-connect__button" data-ticket-connect="authorize">Connect Gmail Inbox</button>
+        </div>
+    `;
 }
 
 function sortTicketsForSidebar(a, b) {

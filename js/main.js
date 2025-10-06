@@ -74,7 +74,7 @@ async function init() {
     loadData();
 
     // Initialize Gmail tickets sidebar
-    initTicketSidebar();
+    await initTicketSidebar();
     
     // Setup canvas
     setupCanvas();
