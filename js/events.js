@@ -128,7 +128,11 @@ function handleSearch(e) {
     if (state.viewMode === 'scatter') {
         animateToFirm(found);
     } else if (state.viewMode === 'map' && found.hqLocation) {
-        zoomToLocation(found);
+        if (typeof focusFirmOnMap === 'function') {
+            focusFirmOnMap(found);
+        } else if (typeof zoomToLocation === 'function') {
+            zoomToLocation(found);
+        }
     }
 }
 
@@ -154,18 +158,6 @@ function animateToFirm(firm) {
     
     animateTo();
     state.hoveredFirm = firm;
-}
-
-function zoomToLocation(firm) {
-    if (!CONFIG.CITY_COORDS[firm.hqLocation]) return;
-
-    if (typeof animateToRotation === 'function') {
-        const coords = CONFIG.CITY_COORDS[firm.hqLocation];
-        animateToRotation({
-            lambda: -coords[1],
-            phi: Math.max(-60, Math.min(60, -coords[0]))
-        }, 2);
-    }
 }
 
 function handleResize() {

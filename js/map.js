@@ -207,6 +207,8 @@ function updateMapBubbles() {
 
     const merged = groupsEnter.merge(groups);
 
+    merged.attr('data-firm-id', d => d.id);
+
     merged.select('.map-bubble')
         .attr('r', d => d.radius)
         .attr('cx', d => d.projected[0])
@@ -413,7 +415,7 @@ function resizeGlobe() {
     scheduleGlobeRender(true);
 }
 
-function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900) {
+function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900, onComplete) {
     if (!state.mapSvg) return;
     const desiredLambda = targetRotation?.lambda ?? state.mapRotation.lambda;
     const desiredPhiRaw = targetRotation?.phi ?? state.mapRotation.phi;
@@ -426,6 +428,14 @@ function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900) {
     const clampedZoom = Math.max(scaleExtent[0], Math.min(scaleExtent[1], targetZoomK));
     state.mapZoomTransform = d3.zoomIdentity.scale(clampedZoom);
 
+    let pending = state.mapZoom ? 2 : 1;
+    const complete = () => {
+        pending -= 1;
+        if (pending <= 0 && typeof onComplete === 'function') {
+            onComplete();
+        }
+    };
+
     d3.transition()
         .duration(duration)
         .ease(d3.easeCubicInOut)
@@ -437,17 +447,92 @@ function animateToRotation(targetRotation, targetZoomK = 1.6, duration = 900) {
         .on('end', () => {
             state.mapRotation = { lambda: desiredLambda, phi: desiredPhi };
             scheduleGlobeRender(true);
+            complete();
         });
 
     if (state.mapZoom) {
         state.mapSvg.transition()
             .duration(duration)
             .ease(d3.easeCubicInOut)
-            .call(state.mapZoom.transform, d3.zoomIdentity.scale(clampedZoom));
+            .call(state.mapZoom.transform, d3.zoomIdentity.scale(clampedZoom))
+            .on('end', complete);
     } else {
         state.mapScale = state.mapBaseScale * clampedZoom;
         scheduleGlobeRender(true);
     }
+}
+
+function resetGlobeOrientation() {
+    animateToRotation({ lambda: 0, phi: 0 }, 1, 600);
+}
+
+function zoomToLocation(firm, options = {}) {
+    if (!firm?.hqLocation || !CONFIG.CITY_COORDS[firm.hqLocation]) return;
+    const coords = CONFIG.CITY_COORDS[firm.hqLocation];
+    const {
+        zoom = 2,
+        duration = 900,
+        onComplete
+    } = options;
+    const target = {
+        lambda: -coords[1],
+        phi: Math.max(-60, Math.min(60, -coords[0]))
+    };
+    animateToRotation(target, zoom, duration, onComplete);
+}
+
+function findMapBubbleNode(firmId) {
+    if (!state.mapBubblesGroup || !firmId) return null;
+    let node = null;
+    state.mapBubblesGroup.selectAll('.map-bubble').each(function(d) {
+        if (d.id === firmId && !node) {
+            node = this;
+        }
+    });
+    return node;
+}
+
+function activateFirmBubble(firmId) {
+    const bubbleNode = findMapBubbleNode(firmId);
+    if (!bubbleNode) return false;
+    bubbleNode.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    return true;
+}
+
+function focusFirmOnMap(firm, options = {}) {
+    if (!firm) return;
+    const {
+        zoom = 2,
+        duration = 900,
+        activationAttempts = 3
+    } = options;
+
+    const tryActivate = attemptsLeft => {
+        if (activateFirmBubble(firm.id)) return;
+        if (attemptsLeft <= 0) {
+            if (typeof openFirmPanel === 'function') {
+                openFirmPanel(firm);
+            }
+            return;
+        }
+        if (typeof requestAnimationFrame === 'function') {
+            requestAnimationFrame(() => tryActivate(attemptsLeft - 1));
+        } else {
+            setTimeout(() => tryActivate(attemptsLeft - 1), 50);
+        }
+    };
+
+    zoomToLocation(firm, {
+        zoom,
+        duration,
+        onComplete: () => {
+            if (typeof requestAnimationFrame !== 'function') {
+                tryActivate(activationAttempts);
+                return;
+            }
+            requestAnimationFrame(() => tryActivate(activationAttempts));
+        }
+    });
 }
 
 // Expose render helpers for other modules
@@ -455,22 +540,6 @@ window.renderGlobe = renderGlobe;
 window.resizeGlobe = resizeGlobe;
 window.animateToRotation = animateToRotation;
 window.scheduleGlobeRender = scheduleGlobeRender;
-
-function resetGlobeOrientation() {
-    animateToRotation({ lambda: 0, phi: 0 }, 1, 600);
-}
-
+window.focusFirmOnMap = focusFirmOnMap;
 window.resetGlobeOrientation = resetGlobeOrientation;
-
-// Override existing zoomToLocation behaviour
-function zoomToLocation(firm) {
-    if (!firm?.hqLocation || !CONFIG.CITY_COORDS[firm.hqLocation]) return;
-    const coords = CONFIG.CITY_COORDS[firm.hqLocation];
-    const target = {
-        lambda: -coords[1],
-        phi: -coords[0]
-    };
-    animateToRotation(target, 2);
-}
-
 window.zoomToLocation = zoomToLocation;
