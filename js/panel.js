@@ -5,6 +5,27 @@ function openFirmPanel(firm) {
     
     // Update header
     $('panel-firm-name').textContent = firm.name;
+    const locationEl = $('panel-firm-location');
+    if (locationEl) {
+        if (firm.hqLocation) {
+            const countryCode = CONFIG.CITY_TO_COUNTRY[firm.hqLocation];
+            let locationLabel = firm.hqLocation;
+            if (countryCode) {
+                try {
+                    const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+                    const countryName = regionNames.of(countryCode);
+                    locationLabel = countryName
+                        ? `${firm.hqLocation}, ${countryName}`
+                        : `${firm.hqLocation}, ${countryCode}`;
+                } catch (e) {
+                    locationLabel = `${firm.hqLocation}, ${countryCode}`;
+                }
+            }
+            locationEl.textContent = locationLabel;
+        } else {
+            locationEl.textContent = 'Location unavailable';
+        }
+    }
     $('panel-firm-aum').textContent = `$${firm.aum.toFixed(1)}B AUM`;
     
     // Update stage
