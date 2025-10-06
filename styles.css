@@ -191,10 +191,10 @@ canvas, #map-container svg {
 
 @keyframes map-bubble-pulse {
     0%, 100% {
-        transform: scale(1);
+        transform: scale(2);
     }
     50% {
-        transform: scale(1.35);
+        transform: scale(2.7);
     }
 }
 
@@ -218,10 +218,11 @@ canvas, #map-container svg {
 }
 
 .map-bubble.highlighted {
-    fill: #3b82f6 !important;
+    fill: #60a5fa !important;
     animation: map-bubble-pulse 1.2s ease-in-out 3;
     transform-box: fill-box;
     transform-origin: center;
+    transform: scale(2);
 }
 
 canvas:active, #map-container svg:active {

@@ -502,13 +502,30 @@ function activateFirmBubble(firmId) {
 function highlightFirmBubble(target) {
     const bubbleNode = typeof target === 'string' ? findMapBubbleNode(target) : target;
     if (!bubbleNode) return;
+    if (bubbleNode.dataset.highlightTimeout) {
+        clearTimeout(Number(bubbleNode.dataset.highlightTimeout));
+    }
+    const recordedRadius = bubbleNode.dataset.originalRadius
+        ? Number(bubbleNode.dataset.originalRadius)
+        : Number(bubbleNode.getAttribute('r'));
+    if (!bubbleNode.dataset.originalRadius && !Number.isNaN(recordedRadius)) {
+        bubbleNode.dataset.originalRadius = String(recordedRadius);
+    }
+    if (!Number.isNaN(recordedRadius) && recordedRadius > 0) {
+        bubbleNode.setAttribute('r', recordedRadius * 2);
+    }
     bubbleNode.classList.add('highlighted');
-    bubbleNode.style.fill = '#3b82f6';
-    setTimeout(() => {
+    bubbleNode.style.fill = '#60a5fa';
+    const timeoutId = setTimeout(() => {
         if (!bubbleNode.isConnected) return;
         bubbleNode.classList.remove('highlighted');
+        if (bubbleNode.dataset.originalRadius) {
+            bubbleNode.setAttribute('r', bubbleNode.dataset.originalRadius);
+        }
         bubbleNode.style.fill = '#22c55e';
+        delete bubbleNode.dataset.highlightTimeout;
     }, 3600);
+    bubbleNode.dataset.highlightTimeout = String(timeoutId);
 }
 
 function focusFirmOnMap(firm, options = {}) {
