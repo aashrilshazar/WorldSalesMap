@@ -502,7 +502,7 @@ function activateFirmBubble(firmId) {
 function focusFirmOnMap(firm, options = {}) {
     if (!firm) return;
     const {
-        zoom = 6,
+        zoom = 8,
         duration = 900,
         activationAttempts = 3
     } = options;
