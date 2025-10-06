@@ -28,9 +28,10 @@ export async function getTicketStatuses(ids = []) {
     const map = new Map();
     results.forEach((value, index) => {
         const id = ids[index];
-        if (!value) return;
+        const record = unwrapPipelineResult(value);
+        if (!record) return;
         try {
-            map.set(id, JSON.parse(value));
+            map.set(id, typeof record === 'string' ? JSON.parse(record) : record);
         } catch (err) {
             console.warn('Failed to parse ticket status for', id, err);
         }
@@ -55,4 +56,16 @@ export async function setTicketStatus(id, statusPayload) {
 export async function clearTicketStatus(id) {
     const redis = getRedis();
     await redis.del(STATUS_KEY_PREFIX + id);
+}
+
+function unwrapPipelineResult(value) {
+    if (value == null) return null;
+    if (Array.isArray(value)) {
+        const [, result] = value;
+        return result || null;
+    }
+    if (typeof value === 'object' && 'result' in value) {
+        return value.result;
+    }
+    return value;
 }
