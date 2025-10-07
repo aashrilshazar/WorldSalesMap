@@ -4,6 +4,8 @@
   "type": "module",
   "dependencies": {
     "@upstash/redis": "^1.28.0",
+    "codex": "^0.2.3",
+    "dotenv": "^17.2.3",
     "googleapis": "^135.0.0",
     "vercel": "^28.18.5"
   }

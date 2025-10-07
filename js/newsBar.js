@@ -1,54 +1,41 @@
-const DUMMY_NEWS_ITEMS = [
-    {
-        id: 'news-1',
-        firm: 'Apollo Global Management',
-        headline: 'Apollo closes $12B global infrastructure fund for energy transition bets',
-        summary: 'Latest flagship vehicle surpasses target with heavy appetite from sovereign LPs focused on renewables and data infrastructure.',
-        source: 'Bloomberg',
-        publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        tags: ['Fund close', 'Deal activity'],
-        url: 'https://www.bloomberg.com'
-    },
-    {
-        id: 'news-2',
-        firm: 'KKR',
-        headline: 'KKR-backed portfolio company finalizes $1.3B carve-out acquisition',
-        summary: 'Buyout giant doubles down on software roll-up, integrating European engineering assets under unified platform.',
-        source: 'Financial Times',
-        publishedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
-        tags: ['Add-on deal'],
-        url: 'https://www.ft.com'
-    },
-    {
-        id: 'news-3',
-        firm: 'Silver Lake',
-        headline: 'Silver Lake appoints co-head of value creation to lead global operating team',
-        summary: 'Veteran operator steps into newly created role focused on driving cross-portfolio transformation initiatives.',
-        source: 'PE Hub',
-        publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        tags: ['Leadership', 'Promotion'],
-        url: 'https://www.pehub.com'
-    }
-];
+const NEWS_ENDPOINT = '/api/news';
+const NEWS_REFRESH_MS = 15 * 60 * 1000;
+const NEWS_LOADING_MESSAGE = 'Loading latest firm headlines…';
+const NEWS_ERROR_INITIAL = 'Unable to load news headlines. Try again soon.';
+const NEWS_ERROR_REFRESH = 'Unable to refresh news feed. Showing cached results.';
+
+let newsFetchPromise = null;
 
 function initNewsBar() {
-    state.newsItems = DUMMY_NEWS_ITEMS.map(item => ({ ...item }));
     const searchInput = $('news-search');
-    if (searchInput) {
+    if (searchInput && !searchInput.dataset.bound) {
         searchInput.addEventListener('input', handleNewsSearch);
+        searchInput.dataset.bound = 'true';
     }
 
     const toggleButton = $('news-toggle');
-    if (toggleButton) {
+    if (toggleButton && !toggleButton.dataset.bound) {
         toggleButton.addEventListener('click', handleNewsToggle);
+        toggleButton.dataset.bound = 'true';
     }
 
     const listEl = $('news-list');
-    if (listEl) {
+    if (listEl && !listEl.dataset.actionsBound) {
         listEl.addEventListener('click', handleNewsListClick);
+        listEl.dataset.actionsBound = 'true';
     }
 
+    state.newsItems = Array.isArray(state.newsItems) ? state.newsItems : [];
+    state.newsLoading = true;
     renderNewsBar();
+
+    loadNewsFromServer();
+
+    if (!state.newsRefreshInterval) {
+        state.newsRefreshInterval = setInterval(() => {
+            loadNewsFromServer();
+        }, NEWS_REFRESH_MS);
+    }
 }
 
 function handleNewsSearch(event) {
@@ -68,21 +55,26 @@ function handleNewsListClick(event) {
     const { newsId } = deleteButton.dataset;
     if (!newsId) return;
 
+    state.dismissedNewsIds.add(newsId);
     state.newsItems = state.newsItems.filter(item => item.id !== newsId);
     renderNewsBar();
 }
 
 function getVisibleNews() {
-    if (!state.newsFilter) return state.newsItems;
+    const items = Array.isArray(state.newsItems) ? state.newsItems : [];
+    const filtered = items.filter(item => !state.dismissedNewsIds.has(item.id));
+    if (!state.newsFilter) return filtered;
 
-    return state.newsItems.filter(item => {
+    return filtered.filter(item => {
         const haystack = [
             item.firm,
             item.headline,
             item.summary,
             (item.tags || []).join(' '),
             item.source
-        ].join(' ').toLowerCase();
+        ]
+            .join(' ')
+            .toLowerCase();
 
         return haystack.includes(state.newsFilter);
     });
@@ -98,51 +90,96 @@ function renderNewsBar() {
 
     if (state.newsCollapsed) {
         bar.classList.add('news-bar--collapsed');
-        toggleButton && (toggleButton.textContent = 'Maximize');
-        toggleButton && toggleButton.setAttribute('aria-expanded', 'false');
+        if (toggleButton) {
+            toggleButton.textContent = 'Maximize';
+            toggleButton.setAttribute('aria-expanded', 'false');
+        }
     } else {
         bar.classList.remove('news-bar--collapsed');
-        toggleButton && (toggleButton.textContent = 'Minimize');
-        toggleButton && toggleButton.setAttribute('aria-expanded', 'true');
+        if (toggleButton) {
+            toggleButton.textContent = 'Minimize';
+            toggleButton.setAttribute('aria-expanded', 'true');
+        }
     }
+
+    if (!listEl || !countEl) return;
 
     const visibleNews = getVisibleNews();
 
-    if (countEl) {
-        const count = visibleNews.length;
-        countEl.textContent = count ? `${count} article${count === 1 ? '' : 's'}` : 'No articles';
-    }
-
-    if (!listEl) return;
-
-    if (!visibleNews.length) {
-        listEl.innerHTML = '<div class="news-empty">No articles match your search yet.</div>';
+    if (state.newsLoading && !state.newsItems.length) {
+        countEl.textContent = 'Loading…';
+        listEl.innerHTML = renderNewsStatus(NEWS_LOADING_MESSAGE, 'loading');
         return;
     }
 
-    listEl.innerHTML = visibleNews
-        .map(item => {
-            const tagsLine = (item.tags || []).join(', ');
-            const metaParts = [item.source, formatRelativeTime(item.publishedAt), tagsLine].filter(Boolean);
-            const metaHtml = metaParts
-                .map(part => `<span>${part}</span>`)
-                .join('');
+    if (state.newsFilter && !visibleNews.length) {
+        countEl.textContent = 'No matches';
+    } else {
+        const count = visibleNews.length;
+        let label = count ? `${count} article${count === 1 ? '' : 's'}` : 'No articles';
 
-            return `
-                <article class="news-card" data-news-id="${item.id}">
-                    <a class="news-card__link" href="${item.url || '#'}" target="_blank" rel="noopener noreferrer">
-                        <div class="news-card__content">
-                            <div class="news-card__firm">${item.firm}</div>
-                            <div class="news-card__headline">${item.headline}</div>
-                            <div class="news-card__summary">${item.summary}</div>
-                            ${metaHtml ? `<div class="news-card__meta">${metaHtml}</div>` : ''}
-                        </div>
-                    </a>
-                    <button class="news-card__delete" type="button" data-action="delete" data-news-id="${item.id}">Delete</button>
-                </article>
-            `;
-        })
-        .join('');
+        if (state.newsLoading && state.newsItems.length) {
+            label += ' • refreshing…';
+        } else if (state.newsLastUpdated) {
+            const updated = formatRelativeTime(state.newsLastUpdated);
+            if (updated) {
+                label += ` • updated ${updated}`;
+            }
+        }
+
+        if (state.newsError && state.newsItems.length) {
+            label += ' • refresh failed';
+        }
+
+        countEl.textContent = label;
+    }
+
+    if (state.newsError && !visibleNews.length) {
+        listEl.innerHTML = renderNewsStatus(state.newsError, 'error');
+        return;
+    }
+
+    if (!visibleNews.length) {
+        const message = state.newsFilter
+            ? 'No articles match your search yet.'
+            : 'No recent headlines for the configured firms yet.';
+        listEl.innerHTML = `<div class="news-empty">${message}</div>`;
+        return;
+    }
+
+    const errorBanner = state.newsError ? renderNewsStatus(state.newsError, 'error') : '';
+    const cards = visibleNews.map(renderNewsCard).join('');
+    listEl.innerHTML = errorBanner + cards;
+}
+
+function renderNewsCard(item) {
+    const tagsLine = (item.tags || []).filter(Boolean).join(', ');
+    const metaParts = [
+        item.source,
+        formatRelativeTime(item.publishedAt),
+        tagsLine
+    ].filter(Boolean);
+
+    const metaHtml = metaParts.map(part => `<span>${part}</span>`).join('');
+
+    return `
+        <article class="news-card" data-news-id="${item.id}">
+            <a class="news-card__link" href="${item.url || '#'}" target="_blank" rel="noopener noreferrer">
+                <div class="news-card__content">
+                    <div class="news-card__firm">${item.firm}</div>
+                    <div class="news-card__headline">${item.headline}</div>
+                    <div class="news-card__summary">${item.summary || ''}</div>
+                    ${metaHtml ? `<div class="news-card__meta">${metaHtml}</div>` : ''}
+                </div>
+            </a>
+            <button class="news-card__delete" type="button" data-action="delete" data-news-id="${item.id}">Delete</button>
+        </article>
+    `;
+}
+
+function renderNewsStatus(message, variant = 'info') {
+    const variantClass = variant ? ` news-status--${variant}` : '';
+    return `<div class="news-status${variantClass}">${message}</div>`;
 }
 
 function updateNewsBarForView(mode) {
@@ -164,6 +201,10 @@ function formatRelativeTime(isoDate) {
     const hour = 60 * minute;
     const day = 24 * hour;
 
+    if (diffMs < minute) {
+        return 'just now';
+    }
+
     if (diffMs < hour) {
         const minutes = Math.max(1, Math.round(diffMs / minute));
         return `${minutes}m ago`;
@@ -175,5 +216,48 @@ function formatRelativeTime(isoDate) {
     }
 
     const days = Math.round(diffMs / day);
-    return `${days}d ago`;
+    if (days < 7) {
+        return `${days}d ago`;
+    }
+
+    const weeks = Math.round(days / 7);
+    return `${weeks}w ago`;
+}
+
+function loadNewsFromServer() {
+    if (newsFetchPromise) {
+        return newsFetchPromise;
+    }
+
+    const previousItems = (state.newsItems || []).slice();
+    state.newsLoading = true;
+    renderNewsBar();
+
+    newsFetchPromise = (async () => {
+        try {
+            const response = await fetch(NEWS_ENDPOINT, { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error(`Request failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            const items = Array.isArray(data.items) ? data.items : [];
+            const filtered = items.filter(item => item && !state.dismissedNewsIds.has(item.id));
+
+            state.newsItems = filtered;
+            state.newsLastUpdated = data.lastUpdated || null;
+            state.newsError = null;
+        } catch (error) {
+            console.error('Failed to load news feed', error);
+            state.newsItems = previousItems;
+            state.newsError = previousItems.length ? NEWS_ERROR_REFRESH : NEWS_ERROR_INITIAL;
+        }
+    })()
+        .finally(() => {
+            state.newsLoading = false;
+            renderNewsBar();
+            newsFetchPromise = null;
+        });
+
+    return newsFetchPromise;
 }

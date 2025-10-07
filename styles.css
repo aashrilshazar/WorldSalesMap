@@ -406,6 +406,29 @@ body {
     color: rgba(148,163,184,0.75);
 }
 
+.news-status {
+    margin-top: 1rem;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    background: rgba(148,163,184,0.12);
+    border: 1px solid rgba(148,163,184,0.2);
+    color: rgba(226,232,240,0.9);
+}
+
+.news-status--loading {
+    background: rgba(37,99,235,0.18);
+    border-color: rgba(59,130,246,0.35);
+    color: #bfdbfe;
+}
+
+.news-status--error {
+    background: rgba(239,68,68,0.12);
+    border-color: rgba(239,68,68,0.4);
+    color: #fca5a5;
+}
+
 .news-card {
     background: rgba(30,41,59,0.9);
     border: 1px solid rgba(148,163,184,0.2);

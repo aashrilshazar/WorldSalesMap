@@ -46,5 +46,10 @@ const state = {
     newsItems: [],
     newsFilter: '',
     newsCollapsed: false,
+    newsLoading: false,
+    newsError: null,
+    newsLastUpdated: null,
+    newsRefreshInterval: null,
+    dismissedNewsIds: new Set(),
     activeHighlightTimeout: null
 };

@@ -1,6 +1,6 @@
 # WorldSalesMap Gmail Ticket Server (Single Inbox)
 
-Local Express server that fetches inbound Gmail messages for one inbox and exposes them at `/api/tickets`.
+Local Express server that fetches inbound Gmail messages for one inbox and exposes them at `/api/tickets`, and now also maintains a scheduled Google Custom Search feed at `/api/news`.
 
 ## Setup
 
@@ -14,14 +14,21 @@ Local Express server that fetches inbound Gmail messages for one inbox and expos
    cd server
    npm install
    ```
-3. Start the API:
+3. Provide Google Custom Search credentials via the same `.env` file:
+   - `GOOGLE_CSE_ID` — Programmable Search Engine (CSE) ID (`cx`).
+   - `GOOGLE_CSE_API_KEY` — API key enabled for the Custom Search JSON API.
+   - Optional overrides:
+     - `NEWS_SEARCH_TEMPLATE` to tweak the base query (defaults to the provided fund/deal keyword set).
+     - `NEWS_RESULTS_PER_FIRM` (default `3`), `NEWS_FETCH_BATCH_SIZE` (default `10`), `NEWS_REFRESH_HOURS` (default `3`).
+4. Start the API:
    ```bash
    npm start
    ```
-4. Visit `http://localhost:4000/api/tickets` to confirm JSON is returned. The main app can then fetch from the same route.
+5. Visit `http://localhost:4000/api/tickets` and `http://localhost:4000/api/news` to confirm JSON is returned. The main app can then fetch from the same routes.
 
 ## Notes
 
 - The server refreshes access tokens automatically using the provided refresh token.
-- Results are fetched live from Gmail each request; add caching later if needed.
+- Gmail results are fetched live on each request; add caching later if needed.
+- News results are refreshed every `NEWS_REFRESH_HOURS` (default 3h) in the background and served from in-memory cache between refreshes.
 - For additional inboxes, supply separate credential sets or extend the server to loop through multiple refresh tokens.
