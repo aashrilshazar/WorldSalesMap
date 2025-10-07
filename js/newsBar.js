@@ -1,10 +1,13 @@
 const NEWS_ENDPOINT = '/api/news';
 const NEWS_REFRESH_MS = 15 * 60 * 1000;
-const NEWS_LOADING_MESSAGE = 'Loading latest firm headlines…';
+const NEWS_LOADING_MESSAGE = 'Loading latest firm headlines...';
 const NEWS_ERROR_INITIAL = 'Unable to load news headlines. Try again soon.';
 const NEWS_ERROR_REFRESH = 'Unable to refresh news feed. Showing cached results.';
+const NEWS_MIN_HEIGHT = 160;
+const NEWS_SAFE_HEADROOM = 120;
 
 let newsFetchPromise = null;
+let newsBarHeightPx = null;
 
 function initNewsBar() {
     const searchInput = $('news-search');
@@ -24,6 +27,8 @@ function initNewsBar() {
         listEl.addEventListener('click', handleNewsListClick);
         listEl.dataset.actionsBound = 'true';
     }
+
+    setupNewsResizer();
 
     state.newsItems = Array.isArray(state.newsItems) ? state.newsItems : [];
     state.newsLoading = true;
@@ -90,12 +95,14 @@ function renderNewsBar() {
 
     if (state.newsCollapsed) {
         bar.classList.add('news-bar--collapsed');
+        bar.style.removeProperty('height');
         if (toggleButton) {
             toggleButton.textContent = 'Maximize';
             toggleButton.setAttribute('aria-expanded', 'false');
         }
     } else {
         bar.classList.remove('news-bar--collapsed');
+        applyNewsBarHeight(bar);
         if (toggleButton) {
             toggleButton.textContent = 'Minimize';
             toggleButton.setAttribute('aria-expanded', 'true');
@@ -107,7 +114,7 @@ function renderNewsBar() {
     const visibleNews = getVisibleNews();
 
     if (state.newsLoading && !state.newsItems.length) {
-        countEl.textContent = 'Loading…';
+        countEl.textContent = 'Loading...';
         listEl.innerHTML = renderNewsStatus(NEWS_LOADING_MESSAGE, 'loading');
         return;
     }
@@ -119,7 +126,7 @@ function renderNewsBar() {
         let label = count ? `${count} article${count === 1 ? '' : 's'}` : 'No articles';
 
         if (state.newsLoading && state.newsItems.length) {
-            label += ' • refreshing…';
+            label += ' • refreshing...';
         } else if (state.newsLastUpdated) {
             const updated = formatRelativeTime(state.newsLastUpdated);
             if (updated) {
@@ -260,4 +267,55 @@ function loadNewsFromServer() {
         });
 
     return newsFetchPromise;
+}
+
+function setupNewsResizer() {
+    const resizer = $('news-resizer');
+    if (!resizer || resizer.dataset.bound) return;
+    resizer.dataset.bound = 'true';
+
+    resizer.addEventListener('mousedown', event => {
+        if (state.newsCollapsed) return;
+
+        const bar = $('news-bar');
+        if (!bar) return;
+
+        event.preventDefault();
+
+        const startY = event.clientY;
+        const startHeight = newsBarHeightPx || bar.getBoundingClientRect().height || 0;
+        newsBarHeightPx = startHeight;
+
+        const handleMove = moveEvent => {
+            let nextHeight = startHeight + (startY - moveEvent.clientY);
+            const maxHeight = Math.max(NEWS_MIN_HEIGHT, window.innerHeight - NEWS_SAFE_HEADROOM);
+            nextHeight = Math.max(NEWS_MIN_HEIGHT, Math.min(maxHeight, nextHeight));
+
+            newsBarHeightPx = nextHeight;
+            bar.style.height = `${Math.round(nextHeight)}px`;
+        };
+
+        const stopResize = () => {
+            window.removeEventListener('mousemove', handleMove);
+            window.removeEventListener('mouseup', stopResize);
+        };
+
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', stopResize);
+    });
+}
+
+function applyNewsBarHeight(bar) {
+    if (!bar) return;
+    if (state.newsCollapsed) return;
+
+    if (typeof newsBarHeightPx !== 'number' || Number.isNaN(newsBarHeightPx)) {
+        bar.style.removeProperty('height');
+        return;
+    }
+
+    const maxHeight = Math.max(NEWS_MIN_HEIGHT, window.innerHeight - NEWS_SAFE_HEADROOM);
+    const clamped = Math.max(NEWS_MIN_HEIGHT, Math.min(maxHeight, newsBarHeightPx));
+    newsBarHeightPx = clamped;
+    bar.style.height = `${Math.round(clamped)}px`;
 }
