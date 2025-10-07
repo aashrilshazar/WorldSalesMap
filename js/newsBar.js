@@ -3,6 +3,9 @@ const NEWS_REFRESH_MS = 15 * 60 * 1000;
 const NEWS_LOADING_MESSAGE = 'Loading latest firm headlines…';
 const NEWS_ERROR_INITIAL = 'Unable to load news headlines. Try again soon.';
 const NEWS_ERROR_REFRESH = 'Unable to refresh news feed. Showing cached results.';
+const NEWS_MIN_HEIGHT = 160;
+const NEWS_MAX_HEIGHT_RATIO = 0.7;
+const NEWS_SAFE_MARGIN = 180;
 
 let newsFetchPromise = null;
 
@@ -24,6 +27,9 @@ function initNewsBar() {
         listEl.addEventListener('click', handleNewsListClick);
         listEl.dataset.actionsBound = 'true';
     }
+
+    setupNewsResizer();
+    requestAnimationFrame(captureInitialNewsBarHeight);
 
     state.newsItems = Array.isArray(state.newsItems) ? state.newsItems : [];
     state.newsLoading = true;
@@ -83,6 +89,8 @@ function getVisibleNews() {
 function renderNewsBar() {
     const bar = $('news-bar');
     if (!bar) return;
+
+    applyNewsBarHeight(bar);
 
     const toggleButton = $('news-toggle');
     const listEl = $('news-list');
@@ -260,4 +268,121 @@ function loadNewsFromServer() {
         });
 
     return newsFetchPromise;
+}
+
+function setupNewsResizer() {
+    const resizer = $('news-resizer');
+    const newsBar = $('news-bar');
+    if (!resizer || !newsBar || resizer.dataset.bound) return;
+
+    resizer.dataset.bound = 'true';
+
+    if (!state.newsResizeListenerBound) {
+        state.newsResizeListenerBound = true;
+        window.addEventListener('resize', handleWindowResize);
+    }
+
+    resizer.addEventListener('pointerdown', event => {
+        if (state.newsCollapsed) return;
+        event.preventDefault();
+        captureInitialNewsBarHeight();
+
+        const bar = $('news-bar');
+        if (!bar) return;
+
+        const startY = event.clientY ?? 0;
+        const startHeight = state.newsBarHeight ?? bar.getBoundingClientRect().height;
+        const minHeight = NEWS_MIN_HEIGHT;
+        const maxHeight = getNewsMaxHeight();
+        const pointerId = event.pointerId;
+
+        if (typeof resizer.setPointerCapture === 'function' && pointerId !== undefined) {
+            try {
+                resizer.setPointerCapture(pointerId);
+            } catch (captureError) {
+                // ignore pointer capture errors
+            }
+        }
+
+        state.newsResizeActive = true;
+        bar.classList.add('news-bar--resizing');
+
+        const handleMove = moveEvent => {
+            if (!state.newsResizeActive) return;
+            const currentY = moveEvent.clientY ?? startY;
+            const delta = startY - currentY;
+            let nextHeight = startHeight + delta;
+            if (Number.isNaN(nextHeight)) return;
+            nextHeight = Math.max(minHeight, Math.min(maxHeight, nextHeight));
+            state.newsBarHeight = nextHeight;
+            applyNewsBarHeight(bar);
+        };
+
+        const endResize = () => {
+            if (!state.newsResizeActive) return;
+            state.newsResizeActive = false;
+            bar.classList.remove('news-bar--resizing');
+            window.removeEventListener('pointermove', handleMove);
+            window.removeEventListener('pointerup', endResize);
+            window.removeEventListener('pointercancel', endResize);
+            if (typeof resizer.releasePointerCapture === 'function' && pointerId !== undefined) {
+                try {
+                    resizer.releasePointerCapture(pointerId);
+                } catch (releaseError) {
+                    // ignore pointer capture release errors
+                }
+            }
+        };
+
+        window.addEventListener('pointermove', handleMove);
+        window.addEventListener('pointerup', endResize);
+        window.addEventListener('pointercancel', endResize);
+    });
+}
+
+function captureInitialNewsBarHeight() {
+    if (state.newsCollapsed) return;
+    const bar = $('news-bar');
+    if (!bar) return;
+
+    if (!state.newsBarHeight) {
+        const height = bar.getBoundingClientRect().height;
+        if (height > 0) {
+            state.newsBarHeight = height;
+        }
+    }
+
+    applyNewsBarHeight(bar);
+}
+
+function getNewsMaxHeight() {
+    const ratioLimit = window.innerHeight * NEWS_MAX_HEIGHT_RATIO;
+    const safeLimit = window.innerHeight - NEWS_SAFE_MARGIN;
+    return Math.max(NEWS_MIN_HEIGHT, Math.min(ratioLimit, safeLimit));
+}
+
+function applyNewsBarHeight(bar = $('news-bar')) {
+    if (!bar) return;
+
+    if (state.newsCollapsed) {
+        bar.style.removeProperty('--news-bar-height');
+        return;
+    }
+
+    const maxHeight = getNewsMaxHeight();
+    let height = state.newsBarHeight ?? bar.getBoundingClientRect().height || NEWS_MIN_HEIGHT;
+    height = Math.max(NEWS_MIN_HEIGHT, Math.min(maxHeight, height));
+    state.newsBarHeight = height;
+    bar.style.setProperty('--news-bar-height', `${Math.round(height)}px`);
+}
+
+function handleWindowResize() {
+    if (!state.newsBarHeight || state.newsCollapsed) return;
+    const bar = $('news-bar');
+    if (!bar) return;
+    const max = getNewsMaxHeight();
+    if (state.newsBarHeight > max) {
+        state.newsBarHeight = max;
+        applyNewsBarHeight(bar);
+    }
 }

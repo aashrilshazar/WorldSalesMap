@@ -22,12 +22,34 @@ function withBasePosition(firm) {
 
 function showTooltip(e, content) {
     const tooltip = document.querySelector('.map-tooltip');
+    const container = document.getElementById('map-container');
+    if (!tooltip || !container) return;
+
     tooltip.innerHTML = content;
-    tooltip.style.left = (e.pageX + 10) + 'px';
-    tooltip.style.top = (e.pageY - 10) + 'px';
+
+    const rect = container.getBoundingClientRect();
+    const offset = 16;
+    const cursorX = (e.clientX ?? 0) - rect.left;
+    const cursorY = (e.clientY ?? 0) - rect.top;
+
+    let left = cursorX + offset;
+    let top = cursorY + offset;
+
+    const tooltipWidth = tooltip.offsetWidth || 0;
+    const tooltipHeight = tooltip.offsetHeight || 0;
+    const maxWidth = rect.width - offset - tooltipWidth;
+    const maxHeight = rect.height - offset - tooltipHeight;
+
+    if (left > maxWidth) left = Math.max(offset, maxWidth);
+    if (top > maxHeight) top = Math.max(offset, maxHeight);
+
+    tooltip.style.left = `${Math.max(offset, left)}px`;
+    tooltip.style.top = `${Math.max(offset, top)}px`;
     tooltip.classList.add('visible');
 }
 
 function hideTooltip() {
-    document.querySelector('.map-tooltip').classList.remove('visible');
+    const tooltip = document.querySelector('.map-tooltip');
+    if (!tooltip) return;
+    tooltip.classList.remove('visible');
 }
