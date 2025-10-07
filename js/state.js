@@ -51,5 +51,8 @@ const state = {
     newsLastUpdated: null,
     newsRefreshInterval: null,
     dismissedNewsIds: new Set(),
+    newsBarHeight: null,
+    newsResizeActive: false,
+    newsResizeListenerBound: false,
     activeHighlightTimeout: null
 };
