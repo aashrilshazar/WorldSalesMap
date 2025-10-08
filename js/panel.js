@@ -136,6 +136,7 @@ function saveFirm(formData) {
     });
     
     state.firms.push(newFirm);
+    state.mapBubbleLayoutDirty = true;
     persistFirms('user');
     updateMapBubbles();
     

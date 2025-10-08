@@ -2,6 +2,7 @@
 const MAP_BUBBLE_MIN_RADIUS = 2;
 const MAP_BUBBLE_FACTOR = 0.3;
 const MAP_BUBBLE_HOVER_FACTOR = 0.45;
+const MAP_BUBBLE_SIZE_RATIO = 2;
 const MAP_CITY_BASE_RADIUS = 1.6;
 const MAP_CITY_MIN_RADIUS = 0.5;
 const MAP_BOUNDARY_PADDING = 20;
@@ -65,6 +66,53 @@ function getStageHoverColor(stage) {
 
 function getStageHighlightColor(stage) {
     return adjustColor(getStageBaseColor(stage), 0.32);
+}
+
+function prepareMapBubbleLayout() {
+    if (!state.mapBubbleLayoutDirty && Array.isArray(state.mapBubbleLayout)) {
+        return;
+    }
+
+    const locationGroups = new Map();
+    state.firms.forEach(firm => {
+        if (!firm?.hqLocation) return;
+        const coords = CONFIG.CITY_COORDS[firm.hqLocation];
+        if (!coords) return;
+        const key = `${coords[0]}_${coords[1]}`;
+        if (!locationGroups.has(key)) {
+            locationGroups.set(key, { coords, firms: [] });
+        }
+        locationGroups.get(key).firms.push(firm);
+    });
+
+    const layout = [];
+
+    locationGroups.forEach(({ coords, firms }) => {
+        if (!firms.length) return;
+        const sorted = [...firms].sort((a, b) => (b.aum ?? 0) - (a.aum ?? 0));
+        const topFirm = sorted[0];
+        const baseMagnitude = Math.sqrt((topFirm?.aum ?? 1) || 1) * MAP_BUBBLE_FACTOR;
+        const rawBaseRadius = Number.isFinite(baseMagnitude) && baseMagnitude > 0
+            ? baseMagnitude
+            : MAP_BUBBLE_MIN_RADIUS;
+        const angleStep = sorted.length > 1 ? (Math.PI * 2) / sorted.length : 0;
+
+        sorted.forEach((firm, index) => {
+            layout.push({
+                firm,
+                coords,
+                index,
+                angle: angleStep * index,
+                rawBaseRadius,
+                radiusScale: 1 / Math.pow(MAP_BUBBLE_SIZE_RATIO, index),
+                projected: [0, 0],
+                radius: MAP_BUBBLE_MIN_RADIUS
+            });
+        });
+    });
+
+    state.mapBubbleLayout = layout;
+    state.mapBubbleLayoutDirty = false;
 }
 
 let pathGenerator = null;
@@ -193,63 +241,54 @@ function renderSphere() {
 function updateMapBubbles() {
     if (!state.mapBubblesGroup || !state.mapProjection) return;
 
-    const geocoded = state.firms.filter(f => f.hqLocation && CONFIG.CITY_COORDS[f.hqLocation]);
-
-    const locationGroups = new Map();
-    geocoded.forEach(f => {
-        const coords = CONFIG.CITY_COORDS[f.hqLocation];
-        if (!coords) return;
-        const key = `${coords[0]}_${coords[1]}`;
-        if (!locationGroups.has(key)) {
-            locationGroups.set(key, { coords, firms: [] });
-        }
-        locationGroups.get(key).firms.push(f);
-    });
-
-    const projected = [];
-    const sizeRatio = 2;
+    prepareMapBubbleLayout();
+    const layout = Array.isArray(state.mapBubbleLayout) ? state.mapBubbleLayout : [];
+    const visible = state.mapVisibleBubbles ?? (state.mapVisibleBubbles = []);
+    visible.length = 0;
 
     const zoomLevel = state.mapZoomTransform?.k || 1;
     const maxZoom = state.mapZoom?.scaleExtent()[1] || 240;
     const zoomRatio = maxZoom > 1 ? Math.min(1, Math.max(0, (zoomLevel - 1) / (maxZoom - 1))) : 0;
     const sizeScale = 1 + zoomRatio * 2; // up to 3x at max zoom
 
-    locationGroups.forEach(({ coords, firms }) => {
+    layout.forEach(entry => {
+        const { firm, coords } = entry;
+        if (!firm || !coords) return;
+
         const [lat, lon] = coords;
         if (!isCoordinateVisible(lon, lat)) return;
         const basePoint = state.mapProjection([lon, lat]);
         if (!basePoint) return;
 
-        const sorted = [...firms].sort((a, b) => (b.aum ?? 0) - (a.aum ?? 0));
-        const rawBaseRadius = Math.sqrt(sorted[0].aum || 1) * MAP_BUBBLE_FACTOR;
         const baseRadius = Math.max(
             MAP_BUBBLE_MIN_RADIUS,
-            rawBaseRadius * sizeScale
+            entry.rawBaseRadius * sizeScale
         );
-        const angleStep = sorted.length > 1 ? (Math.PI * 2) / sorted.length : 0;
+        const ratioRadius = baseRadius * entry.radiusScale;
+        const radius = Math.max(MAP_BUBBLE_MIN_RADIUS, ratioRadius);
+        let x = basePoint[0];
+        let y = basePoint[1];
+        if (entry.index > 0) {
+            const offset = baseRadius * 0.9 + radius;
+            x += Math.cos(entry.angle) * offset;
+            y += Math.sin(entry.angle) * offset;
+        }
 
-        sorted.forEach((firm, index) => {
-            const ratioRadius = baseRadius / Math.pow(sizeRatio, index);
-            const radius = Math.max(MAP_BUBBLE_MIN_RADIUS, ratioRadius);
-            let x = basePoint[0];
-            let y = basePoint[1];
-            if (index > 0) {
-                const angle = angleStep * index;
-                const offset = baseRadius * 0.9 + radius;
-                x += Math.cos(angle) * offset;
-                y += Math.sin(angle) * offset;
-            }
-            projected.push({
-                ...firm,
-                projected: [x, y],
-                radius,
-                labelBaseRadius: baseRadius
-            });
-        });
+        entry.id = firm.id;
+        entry.name = firm.name;
+        const aumValue = Number(firm.aum);
+        entry.aum = Number.isFinite(aumValue) ? aumValue : 0;
+        entry.stage = firm.stage;
+        entry.hqLocation = firm.hqLocation;
+        entry.projected[0] = x;
+        entry.projected[1] = y;
+        entry.radius = radius;
+
+        visible.push(entry);
     });
 
     const groups = state.mapBubblesGroup.selectAll('.map-bubble-group')
-        .data(projected, d => d.id);
+        .data(visible, d => d.id);
 
     const groupsEnter = groups.enter().append('g')
         .attr('class', 'map-bubble-group');
@@ -271,10 +310,11 @@ function updateMapBubbles() {
         .style('fill', d => getStageBaseColor(d.stage))
         .on('click', (event, d) => {
             event.stopPropagation();
+            const firmData = d.firm || d;
             if (typeof focusFirmOnMap === 'function') {
-                focusFirmOnMap(d);
+                focusFirmOnMap(firmData);
             } else if (typeof openFirmPanel === 'function') {
-                openFirmPanel(d);
+                openFirmPanel(firmData);
             }
         })
         .on('mouseover', function(event, d) {

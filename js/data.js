@@ -19,17 +19,21 @@ function loadData() {
         // Prefer dataset over stored data, or use stored if dataset is empty
         if (dataset.length > 0) {
             state.firms = dataset;
+            state.mapBubbleLayoutDirty = true;
             persistFirms('dataset');
         } else if (stored.length > 0) {
             state.firms = stored.map(withBasePosition);
+            state.mapBubbleLayoutDirty = true;
         } else {
             // No data available
             state.firms = [];
+            state.mapBubbleLayoutDirty = true;
             console.warn('No firms data available');
         }
     } catch (e) {
         console.error('Error loading data:', e);
         state.firms = [];
+        state.mapBubbleLayoutDirty = true;
     }
 }
 
@@ -55,6 +59,7 @@ function importData() {
         reader.onload = evt => {
             try {
                 state.firms = JSON.parse(evt.target.result).map(withBasePosition);
+                state.mapBubbleLayoutDirty = true;
                 persistFirms('user');
                 updateMapBubbles();
                 if (state.viewMode === 'kanban') {

@@ -90,6 +90,7 @@ function sortBy(type) {
     
     if (type === 'none') {
         state.firms = state.firms.map(f => ({ ...f, x: f.baseX, y: f.baseY }));
+        state.mapBubbleLayoutDirty = true;
     } else {
         const sortKey = type === 'people' ? 'peopleCount' : type;
         state.firms.sort((a, b) => b[sortKey] - a[sortKey]);
