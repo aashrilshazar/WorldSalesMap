@@ -68,6 +68,55 @@ function getStageHighlightColor(stage) {
     return adjustColor(getStageBaseColor(stage), 0.32);
 }
 
+function handleBubbleClick(event, d) {
+    event.stopPropagation();
+    const firmData = d.firm || d;
+    if (typeof focusFirmOnMap === 'function') {
+        focusFirmOnMap(firmData);
+    } else if (typeof openFirmPanel === 'function') {
+        openFirmPanel(firmData);
+    }
+}
+
+function handleBubbleMouseOver(event, d) {
+    const highlightColor = getStageHighlightColor(d.stage);
+    const hoverColor = getStageHoverColor(d.stage);
+    if (state.activeFirmId === d.id) {
+        d3.select(this)
+            .interrupt('highlight')
+            .style('fill', highlightColor);
+    } else {
+        d3.select(this)
+            .transition()
+            .duration(200)
+            .attr('r', Math.max(d.radius * 1.25, MAP_BUBBLE_MIN_RADIUS * 1.5))
+            .style('fill', hoverColor);
+    }
+
+    const content = `<strong>${d.name}</strong><br>
+        AUM: $${d.aum.toFixed(1)}B<br>
+        HQ: ${d.hqLocation}<br>
+        Stage: ${getStageName(d.stage)}`;
+    showTooltip(event, content);
+}
+
+function handleBubbleMouseOut(event, d) {
+    const baseColor = getStageBaseColor(d.stage);
+    const highlightColor = getStageHighlightColor(d.stage);
+    if (state.activeFirmId === d.id) {
+        d3.select(this)
+            .interrupt('highlight')
+            .style('fill', highlightColor);
+    } else {
+        d3.select(this)
+            .transition()
+            .duration(200)
+            .attr('r', d.radius)
+            .style('fill', baseColor);
+    }
+    hideTooltip();
+}
+
 function prepareMapBubbleLayout() {
     if (!state.mapBubbleLayoutDirty && Array.isArray(state.mapBubbleLayout)) {
         return;
@@ -111,6 +160,11 @@ function prepareMapBubbleLayout() {
         });
     });
 
+    if (state.mapBubblesGroup) {
+        state.mapBubblesGroup.selectAll('*').remove();
+    }
+    state.mapBubbleNodeCache = new Map();
+    state.mapVisibleBubbles = [];
     state.mapBubbleLayout = layout;
     state.mapBubbleLayoutDirty = false;
 }
@@ -243,8 +297,10 @@ function updateMapBubbles() {
 
     prepareMapBubbleLayout();
     const layout = Array.isArray(state.mapBubbleLayout) ? state.mapBubbleLayout : [];
-    const visible = state.mapVisibleBubbles ?? (state.mapVisibleBubbles = []);
-    visible.length = 0;
+    const visibleEntries = state.mapVisibleBubbles ?? (state.mapVisibleBubbles = []);
+    visibleEntries.length = 0;
+    const visibleSet = new Set();
+    const bubbleCache = state.mapBubbleNodeCache || (state.mapBubbleNodeCache = new Map());
 
     const zoomLevel = state.mapZoomTransform?.k || 1;
     const maxZoom = state.mapZoom?.scaleExtent()[1] || 240;
@@ -253,12 +309,32 @@ function updateMapBubbles() {
 
     layout.forEach(entry => {
         const { firm, coords } = entry;
-        if (!firm || !coords) return;
+        if (firm?.id) {
+            entry.id = firm.id;
+        }
+        entry.name = firm?.name;
+        const aumValue = Number(firm?.aum);
+        entry.aum = Number.isFinite(aumValue) ? aumValue : 0;
+        entry.stage = firm?.stage;
+        entry.hqLocation = firm?.hqLocation;
+
+        if (!entry.id) return;
+        const cacheItem = bubbleCache.get(entry.id);
+        if (!firm || !coords) {
+            if (cacheItem) cacheItem.group.style('display', 'none');
+            return;
+        }
 
         const [lat, lon] = coords;
-        if (!isCoordinateVisible(lon, lat)) return;
+        if (!isCoordinateVisible(lon, lat)) {
+            if (cacheItem) cacheItem.group.style('display', 'none');
+            return;
+        }
         const basePoint = state.mapProjection([lon, lat]);
-        if (!basePoint) return;
+        if (!basePoint) {
+            if (cacheItem) cacheItem.group.style('display', 'none');
+            return;
+        }
 
         const baseRadius = Math.max(
             MAP_BUBBLE_MIN_RADIUS,
@@ -274,93 +350,58 @@ function updateMapBubbles() {
             y += Math.sin(entry.angle) * offset;
         }
 
-        entry.id = firm.id;
-        entry.name = firm.name;
-        const aumValue = Number(firm.aum);
-        entry.aum = Number.isFinite(aumValue) ? aumValue : 0;
-        entry.stage = firm.stage;
-        entry.hqLocation = firm.hqLocation;
         entry.projected[0] = x;
         entry.projected[1] = y;
         entry.radius = radius;
+        visibleEntries.push(entry);
+        visibleSet.add(entry.id);
 
-        visible.push(entry);
+        let nodeBundle = cacheItem;
+        if (!nodeBundle) {
+            const group = state.mapBubblesGroup.append('g')
+                .attr('class', 'map-bubble-group')
+                .attr('data-firm-id', entry.id);
+            const circle = group.append('circle')
+                .attr('class', 'map-bubble');
+            const label = group.append('text')
+                .attr('class', 'map-bubble-label');
+
+            circle
+                .on('click', handleBubbleClick)
+                .on('mouseover', handleBubbleMouseOver)
+                .on('mouseout', handleBubbleMouseOut);
+
+            nodeBundle = {
+                group,
+                circle,
+                label
+            };
+            bubbleCache.set(entry.id, nodeBundle);
+        }
+
+        const { group, circle, label } = nodeBundle;
+
+        group.datum(entry)
+            .attr('data-firm-id', entry.id)
+            .style('display', null);
+
+        circle.datum(entry)
+            .attr('r', entry.radius)
+            .attr('cx', entry.projected[0])
+            .attr('cy', entry.projected[1])
+            .style('fill', getStageBaseColor(entry.stage));
+
+        label.datum(entry)
+            .attr('x', entry.projected[0])
+            .attr('y', entry.projected[1] + entry.radius + 8)
+            .text(entry.name || '');
     });
 
-    const groups = state.mapBubblesGroup.selectAll('.map-bubble-group')
-        .data(visible, d => d.id);
-
-    const groupsEnter = groups.enter().append('g')
-        .attr('class', 'map-bubble-group');
-
-    groupsEnter.append('circle')
-        .attr('class', 'map-bubble');
-
-    groupsEnter.append('text')
-        .attr('class', 'map-bubble-label');
-
-    const merged = groupsEnter.merge(groups);
-
-    merged.attr('data-firm-id', d => d.id);
-
-    merged.select('.map-bubble')
-        .attr('r', d => d.radius)
-        .attr('cx', d => d.projected[0])
-        .attr('cy', d => d.projected[1])
-        .style('fill', d => getStageBaseColor(d.stage))
-        .on('click', (event, d) => {
-            event.stopPropagation();
-            const firmData = d.firm || d;
-            if (typeof focusFirmOnMap === 'function') {
-                focusFirmOnMap(firmData);
-            } else if (typeof openFirmPanel === 'function') {
-                openFirmPanel(firmData);
-            }
-        })
-        .on('mouseover', function(event, d) {
-            const highlightColor = getStageHighlightColor(d.stage);
-            const hoverColor = getStageHoverColor(d.stage);
-            if (state.activeFirmId === d.id) {
-                d3.select(this)
-                    .interrupt('highlight')
-                    .style('fill', highlightColor);
-            } else {
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .attr('r', Math.max(d.radius * 1.25, MAP_BUBBLE_MIN_RADIUS * 1.5))
-                    .style('fill', hoverColor);
-            }
-
-            const content = `<strong>${d.name}</strong><br>
-                AUM: $${d.aum.toFixed(1)}B<br>
-                HQ: ${d.hqLocation}<br>
-                Stage: ${getStageName(d.stage)}`;
-            showTooltip(event, content);
-        })
-        .on('mouseout', function(event, d) {
-            const baseColor = getStageBaseColor(d.stage);
-            const highlightColor = getStageHighlightColor(d.stage);
-            if (state.activeFirmId === d.id) {
-                d3.select(this)
-                    .interrupt('highlight')
-                    .style('fill', highlightColor);
-            } else {
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .attr('r', d.radius)
-                    .style('fill', baseColor);
-            }
-            hideTooltip();
-        });
-
-    merged.select('.map-bubble-label')
-        .attr('x', d => d.projected[0])
-        .attr('y', d => d.projected[1] + d.radius + 8)
-        .text(d => d.name);
-
-    groups.exit().remove();
+    bubbleCache.forEach((nodeBundle, id) => {
+        if (!visibleSet.has(id)) {
+            nodeBundle.group.style('display', 'none');
+        }
+    });
 
     restoreActiveBubbleHighlight();
 }
