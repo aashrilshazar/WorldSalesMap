@@ -15,32 +15,7 @@ window.PE_FIRMS_DATA = [
         "Software"
       ],
       "hqLocation": "New York",
-      "people": [
-        {
-        id: 'person_001',
-        name: 'Stephen Schwarzman',
-        role: 'GP',
-        title: 'Chairman & CEO',
-        email: 's.schwarzman@blackstone.com',
-        lastContact: '2024-12-15T10:00:00Z'
-      },
-      {
-        id: 'person_002',
-        name: 'Jonathan Gray',
-        role: 'GP',
-        title: 'President & COO',
-        email: 'j.gray@blackstone.com',
-        lastContact: '2024-12-20T14:30:00Z'
-      },
-      {
-        id: 'person_003',
-        name: 'Sarah Johnson',
-        role: 'MD',
-        title: 'Managing Director - Software',
-        email: 's.johnson@blackstone.com',
-        lastContact: null
-      }
-      ]
+      "people": []
     },
     {
       "id": "firm_20251004_002",
@@ -123,7 +98,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_008",
       "name": "CVC Capital Partners (AMS: CVC)",
       "aum_m": 234634,
-      "stage": 0,
+      "stage": 4,
       "stageLabel": "Unknown",
       "peopleCount": 430,
       "focus": [
@@ -162,7 +137,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_011",
       "name": "Ardian",
       "aum_m": 192000,
-      "stage": 0,
+      "stage": 1,
       "stageLabel": "Unknown",
       "peopleCount": 387,
       "focus": [
@@ -175,7 +150,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_012",
       "name": "Bain Capital",
       "aum_m": 185000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 400,
       "focus": [
@@ -188,7 +163,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_013",
       "name": "Thoma Bravo",
       "aum_m": 181000,
-      "stage": 0,
+      "stage": 9,
       "stageLabel": "Unknown",
       "peopleCount": 130,
       "focus": [
@@ -214,7 +189,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_015",
       "name": "Partners Group (SWX: PGHN)",
       "aum_m": 174000,
-      "stage": 0,
+      "stage": 7,
       "stageLabel": "Unknown",
       "peopleCount": 182,
       "focus": [
@@ -227,7 +202,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_016",
       "name": "HPS Investment Partners",
       "aum_m": 155794,
-      "stage": 0,
+      "stage": 1,
       "stageLabel": "Unknown",
       "peopleCount": 273,
       "focus": [
@@ -253,7 +228,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_018",
       "name": "Silver Lake",
       "aum_m": 110000,
-      "stage": 0,
+      "stage": 6,
       "stageLabel": "Unknown",
       "peopleCount": 133,
       "focus": [
@@ -266,7 +241,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_019",
       "name": "Hellman & Friedman",
       "aum_m": 107491,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 88,
       "focus": [
@@ -279,7 +254,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_020",
       "name": "General Atlantic",
       "aum_m": 105747,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 324,
       "focus": [
@@ -292,7 +267,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_021",
       "name": "Advent International",
       "aum_m": 100000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 266,
       "focus": [
@@ -305,7 +280,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_022",
       "name": "Hg",
       "aum_m": 100000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 176,
       "focus": [
@@ -318,7 +293,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_023",
       "name": "Vista Equity Partners",
       "aum_m": 100000,
-      "stage": 0,
+      "stage": 1,
       "stageLabel": "Unknown",
       "peopleCount": 247,
       "focus": [
@@ -331,7 +306,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_024",
       "name": "Carlyle AlpInvest",
       "aum_m": 97000,
-      "stage": 0,
+      "stage": 1,
       "stageLabel": "Unknown",
       "peopleCount": 94,
       "focus": [
@@ -344,7 +319,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_025",
       "name": "Permira",
       "aum_m": 94330,
-      "stage": 0,
+      "stage": 4,
       "stageLabel": "Unknown",
       "peopleCount": 243,
       "focus": [
@@ -370,7 +345,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_027",
       "name": "Apax Partners",
       "aum_m": 87988,
-      "stage": 0,
+      "stage": 5,
       "stageLabel": "Unknown",
       "peopleCount": 166,
       "focus": [
@@ -383,7 +358,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_028",
       "name": "Bridgepoint Group (UK) (LON: BPT)",
       "aum_m": 86000,
-      "stage": 0,
+      "stage": 4,
       "stageLabel": "Unknown",
       "peopleCount": 206,
       "focus": [
@@ -396,7 +371,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_029",
       "name": "Warburg Pincus",
       "aum_m": 86000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 373,
       "focus": [
@@ -409,7 +384,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_030",
       "name": "Sixth Street Partners",
       "aum_m": 79977,
-      "stage": 0,
+      "stage": 4,
       "stageLabel": "Unknown",
       "peopleCount": 42,
       "focus": [
@@ -435,9 +410,9 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_032",
       "name": "HarbourVest Horizon",
       "aum_m": 76000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
-      "peopleCount": 3,
+      "peopleCount": 90,
       "focus": [
         "Software"
       ],
@@ -448,7 +423,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_033",
       "name": "Lexington Partners",
       "aum_m": 73338,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 127,
       "focus": [
@@ -461,7 +436,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_034",
       "name": "H.I.G. Capital",
       "aum_m": 70000,
-      "stage": 0,
+      "stage": 5,
       "stageLabel": "Unknown",
       "peopleCount": 172,
       "focus": [
@@ -474,7 +449,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_035",
       "name": "Coatue Management",
       "aum_m": 69516,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 21,
       "focus": [
@@ -487,7 +462,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_036",
       "name": "Stone Point Capital",
       "aum_m": 68562,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 115,
       "focus": [
@@ -513,7 +488,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_038",
       "name": "H.I.G. Growth Partners",
       "aum_m": 64000,
-      "stage": 0,
+      "stage": 4,
       "stageLabel": "Unknown",
       "peopleCount": 38,
       "focus": [
@@ -551,7 +526,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_041",
       "name": "SoftBank Investment Advisers",
       "aum_m": 60920,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 47,
       "focus": [
@@ -564,7 +539,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_042",
       "name": "TA Associates Management",
       "aum_m": 60721,
-      "stage": 0,
+      "stage": 5,
       "stageLabel": "Unknown",
       "peopleCount": 165,
       "focus": [
@@ -590,7 +565,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_044",
       "name": "Investcorp",
       "aum_m": 57000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 153,
       "focus": [
@@ -616,7 +591,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_046",
       "name": "New Mountain Capital",
       "aum_m": 55000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 371,
       "focus": [
@@ -629,7 +604,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_047",
       "name": "PAG",
       "aum_m": 55000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 30,
       "focus": [
@@ -642,7 +617,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_048",
       "name": "Veritas Capital Fund Management",
       "aum_m": 54000,
-      "stage": 0,
+      "stage": 7,
       "stageLabel": "Unknown",
       "peopleCount": 70,
       "focus": [
@@ -655,7 +630,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_049",
       "name": "Fortress Investment Group",
       "aum_m": 53000,
-      "stage": 0,
+      "stage": 5,
       "stageLabel": "Unknown",
       "peopleCount": 78,
       "focus": [
@@ -681,7 +656,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_051",
       "name": "Cinven",
       "aum_m": 51620,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 146,
       "focus": [
@@ -694,7 +669,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_052",
       "name": "Genstar Capital",
       "aum_m": 50000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 18,
       "focus": [
@@ -707,7 +682,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_053",
       "name": "GTCR",
       "aum_m": 50000,
-      "stage": 0,
+      "stage": 4,
       "stageLabel": "Unknown",
       "peopleCount": 103,
       "focus": [
@@ -720,7 +695,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_054",
       "name": "Platinum Equity",
       "aum_m": 50000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 88,
       "focus": [
@@ -733,7 +708,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_055",
       "name": "BC Partners",
       "aum_m": 46927,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 135,
       "focus": [
@@ -746,7 +721,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_056",
       "name": "Bridgepoint Group",
       "aum_m": 46340,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "focus": [
         "Software"
@@ -758,7 +733,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_057",
       "name": "Francisco Partners",
       "aum_m": 45084,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 103,
       "focus": [
@@ -771,7 +746,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_058",
       "name": "Summit Partners",
       "aum_m": 43635,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 143,
       "focus": [
@@ -784,7 +759,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_059",
       "name": "Eurazeo (PAR: RF)",
       "aum_m": 43173,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 232,
       "focus": [
@@ -797,7 +772,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_060",
       "name": "Centerbridge Partners",
       "aum_m": 43000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 155,
       "focus": [
@@ -810,7 +785,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_061",
       "name": "Centricus",
       "aum_m": 42000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 14,
       "focus": [
@@ -823,7 +798,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_062",
       "name": "Boyu Capital",
       "aum_m": 40000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 39,
       "focus": [
@@ -836,7 +811,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_063",
       "name": "JAB Holding Company",
       "aum_m": 40000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 18,
       "focus": [
@@ -849,7 +824,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_064",
       "name": "Nordic Capital",
       "aum_m": 39888,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 136,
       "focus": [
@@ -862,7 +837,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_065",
       "name": "Antin Infrastructure Partners (PAR: ANTIN)",
       "aum_m": 38715,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 77,
       "focus": [
@@ -875,7 +850,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_066",
       "name": "L Catterton",
       "aum_m": 37000,
-      "stage": 0,
+      "stage": 5,
       "stageLabel": "Unknown",
       "peopleCount": 204,
       "focus": [
@@ -914,7 +889,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_069",
       "name": "Generation Investment Management",
       "aum_m": 31300,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 76,
       "focus": [
@@ -927,7 +902,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_070",
       "name": "PSG",
       "aum_m": 28360,
-      "stage": 0,
+      "stage": 5,
       "stageLabel": "Unknown",
       "peopleCount": 191,
       "focus": [
@@ -940,7 +915,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_071",
       "name": "CDH Investments",
       "aum_m": 27000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 41,
       "focus": [
@@ -953,7 +928,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_072",
       "name": "Astorg",
       "aum_m": 26983,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 190,
       "focus": [
@@ -992,7 +967,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_075",
       "name": "Bregal Sagemount",
       "aum_m": 25847,
-      "stage": 0,
+      "stage": 9,
       "stageLabel": "Unknown",
       "peopleCount": 45,
       "focus": [
@@ -1057,7 +1032,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_080",
       "name": "TowerBrook Capital Partners",
       "aum_m": 25000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 104,
       "focus": [
@@ -1082,7 +1057,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_082",
       "name": "Northleaf Capital Partners",
       "aum_m": 24000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 116,
       "focus": [
@@ -1095,7 +1070,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_083",
       "name": "Accel-KKR",
       "aum_m": 23741,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 86,
       "focus": [
@@ -1108,7 +1083,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_084",
       "name": "Providence Equity Partners",
       "aum_m": 22682,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 85,
       "focus": [
@@ -1121,7 +1096,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_085",
       "name": "Charlesbank Capital Partners",
       "aum_m": 22000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 125,
       "focus": [
@@ -1146,7 +1121,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_087",
       "name": "EQT Private Capital Asia",
       "aum_m": 22000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 53,
       "focus": [
@@ -1198,7 +1173,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_091",
       "name": "Vitruvian Partners",
       "aum_m": 20000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 76,
       "focus": [
@@ -1211,7 +1186,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_092",
       "name": "OMERS Private Equity",
       "aum_m": 19863,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 58,
       "focus": [
@@ -1237,7 +1212,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_094",
       "name": "K1 Investment Management",
       "aum_m": 19695,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 77,
       "focus": [
@@ -1276,7 +1251,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_097",
       "name": "AEA Growth",
       "aum_m": 18000,
-      "stage": 0,
+      "stage": 4,
       "stageLabel": "Unknown",
       "peopleCount": 13,
       "focus": [
@@ -1289,7 +1264,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_098",
       "name": "AEA Investors",
       "aum_m": 18000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 120,
       "focus": [
@@ -1315,7 +1290,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_100",
       "name": "Tata Capital",
       "aum_m": 17945,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 28,
       "focus": [
@@ -1379,7 +1354,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_105",
       "name": "RCP Advisors",
       "aum_m": 17181,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 39,
       "focus": [
@@ -1392,7 +1367,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_106",
       "name": "Abry Partners",
       "aum_m": 17000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 61,
       "focus": [
@@ -1405,7 +1380,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_107",
       "name": "Siguler Guff",
       "aum_m": 17000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 87,
       "focus": [
@@ -1418,7 +1393,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_108",
       "name": "Triton Partners",
       "aum_m": 17000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 99,
       "focus": [
@@ -1431,7 +1406,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_109",
       "name": "Actis",
       "aum_m": 16800,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 113,
       "focus": [
@@ -1442,7 +1417,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_110",
-      "name": "Kelso &amp; Company",
+      "name": "Kelso & Company",
       "aum_m": 16679,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -1496,7 +1471,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_114",
       "name": "Madison Dearborn Partners",
       "aum_m": 16079,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 65,
       "focus": [
@@ -1522,7 +1497,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_116",
       "name": "Stephens",
       "aum_m": 15612,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 205,
       "focus": [
@@ -1535,7 +1510,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_117",
       "name": "Thomas H. Lee Partners",
       "aum_m": 15430,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 110,
       "focus": [
@@ -1561,7 +1536,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_119",
       "name": "CF Private Equity",
       "aum_m": 15253,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 50,
       "focus": [
@@ -1574,7 +1549,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_120",
       "name": "Battery Ventures",
       "aum_m": 15113,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 76,
       "focus": [
@@ -1652,7 +1627,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_126",
       "name": "Investindustrial",
       "aum_m": 14078,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 16,
       "focus": [
@@ -1688,7 +1663,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_129",
-      "name": "Hahn &amp; Company",
+      "name": "Hahn & Company",
       "aum_m": 14000,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -1728,7 +1703,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_132",
       "name": "Sycamore Partners",
       "aum_m": 13932,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 10,
       "focus": [
@@ -1765,9 +1740,9 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_135",
-      "name": "Welsh, Carson, Anderson &amp; Stowe",
+      "name": "Welsh, Carson, Anderson & Stowe",
       "aum_m": 13374,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 61,
       "focus": [
@@ -1780,7 +1755,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_136",
       "name": "Aquiline (New York)",
       "aum_m": 13000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 66,
       "focus": [
@@ -1845,7 +1820,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_141",
       "name": "Invus Financial Advisors",
       "aum_m": 12584,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 7,
       "focus": [
@@ -1871,7 +1846,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_143",
       "name": "The Riverside Company",
       "aum_m": 12100,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 194,
       "focus": [
@@ -1884,7 +1859,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_144",
       "name": "RedBird Capital Partners",
       "aum_m": 12000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 55,
       "focus": [
@@ -1897,7 +1872,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_145",
       "name": "STG Partners",
       "aum_m": 12000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 50,
       "focus": [
@@ -1910,7 +1885,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_146",
       "name": "Great Hill Partners",
       "aum_m": 11677,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 69,
       "focus": [
@@ -1975,7 +1950,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_151",
       "name": "Golden Gate Capital",
       "aum_m": 11111,
-      "stage": 0,
+      "stage": 5,
       "stageLabel": "Unknown",
       "peopleCount": 52,
       "focus": [
@@ -2014,7 +1989,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_154",
       "name": "Cercano Management",
       "aum_m": 10518,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 15,
       "focus": [
@@ -2040,7 +2015,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_156",
       "name": "Arsenal Capital Partners",
       "aum_m": 10155,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 60,
       "focus": [
@@ -2053,7 +2028,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_157",
       "name": "Novacap",
       "aum_m": 10112,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 84,
       "focus": [
@@ -2092,7 +2067,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_160",
       "name": "Gryphon Investors",
       "aum_m": 10000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 100,
       "focus": [
@@ -2182,7 +2157,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_167",
       "name": "The Invus Group",
       "aum_m": 10000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 51,
       "focus": [
@@ -2220,7 +2195,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_170",
       "name": "Arlington Capital Partners",
       "aum_m": 9700,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 26,
       "focus": [
@@ -2233,7 +2208,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_171",
       "name": "Court Square",
       "aum_m": 9686,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 43,
       "focus": [
@@ -2259,7 +2234,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_173",
       "name": "JMI Equity",
       "aum_m": 9483,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 55,
       "focus": [
@@ -2311,7 +2286,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_177",
       "name": "Verdane",
       "aum_m": 9385,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 94,
       "focus": [
@@ -2363,7 +2338,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_181",
       "name": "Marlin Equity Partners",
       "aum_m": 8972,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 64,
       "focus": [
@@ -2374,7 +2349,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_182",
-      "name": "Cohen &amp; Murphy Capital Partners",
+      "name": "Cohen & Murphy Capital Partners",
       "aum_m": 8700,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -2401,7 +2376,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_184",
       "name": "Gridiron Capital",
       "aum_m": 8600,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 31,
       "focus": [
@@ -2440,7 +2415,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_187",
       "name": "Ridgemont Equity Partners",
       "aum_m": 8252,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 53,
       "focus": [
@@ -2453,7 +2428,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_188",
       "name": "Corsair Capital",
       "aum_m": 8242,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 51,
       "focus": [
@@ -2492,7 +2467,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_191",
       "name": "Fisher Lynch Capital",
       "aum_m": 8052,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 13,
       "focus": [
@@ -2503,7 +2478,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_192",
-      "name": "AJ Capital &amp; Investments",
+      "name": "AJ Capital & Investments",
       "aum_m": 8000,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -2555,9 +2530,9 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_196",
-      "name": "Littlejohn &amp; Co.",
+      "name": "Littlejohn & Co.",
       "aum_m": 8000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 56,
       "focus": [
@@ -2583,7 +2558,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_198",
       "name": "Trive Capital",
       "aum_m": 8000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 58,
       "focus": [
@@ -2674,7 +2649,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_205",
       "name": "Trilantic North America",
       "aum_m": 7727,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 29,
       "focus": [
@@ -2713,7 +2688,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_208",
       "name": "WestBridge Capital (San Mateo)",
       "aum_m": 7552,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 39,
       "focus": [
@@ -2726,7 +2701,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_209",
       "name": "Spectrum Equity",
       "aum_m": 7380,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 49,
       "focus": [
@@ -2739,7 +2714,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_210",
       "name": "LLR Partners",
       "aum_m": 7308,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 94,
       "focus": [
@@ -2752,7 +2727,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_211",
       "name": "Lightyear Capital",
       "aum_m": 7199,
-      "stage": 0,
+      "stage": 6,
       "stageLabel": "Unknown",
       "peopleCount": 35,
       "focus": [
@@ -2765,7 +2740,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_212",
       "name": "Odyssey Investment Partners",
       "aum_m": 7108,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 40,
       "focus": [
@@ -2843,7 +2818,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_218",
       "name": "CapitalG",
       "aum_m": 7000,
-      "stage": 0,
+      "stage": 6,
       "stageLabel": "Unknown",
       "peopleCount": 29,
       "focus": [
@@ -2893,7 +2868,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_222",
-      "name": "J.F. Lehman &amp; Company",
+      "name": "J.F. Lehman & Company",
       "aum_m": 7000,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -2920,7 +2895,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_224",
       "name": "Teachers' Venture Growth",
       "aum_m": 7000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 35,
       "focus": [
@@ -2933,7 +2908,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_225",
       "name": "HGGC",
       "aum_m": 6984,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 48,
       "focus": [
@@ -2972,7 +2947,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_228",
       "name": "Stripes",
       "aum_m": 6867,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 31,
       "focus": [
@@ -3010,7 +2985,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_231",
       "name": "Leeds Equity Partners",
       "aum_m": 6590,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 21,
       "focus": [
@@ -3023,7 +2998,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_232",
       "name": "Shamrock Capital Advisors",
       "aum_m": 6500,
-      "stage": 0,
+      "stage": 4,
       "stageLabel": "Unknown",
       "peopleCount": 36,
       "focus": [
@@ -3036,7 +3011,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_233",
       "name": "AE Industrial Partners",
       "aum_m": 6403,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 40,
       "focus": [
@@ -3088,7 +3063,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_237",
       "name": "Riverwood Capital",
       "aum_m": 6256,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 34,
       "focus": [
@@ -3114,7 +3089,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_239",
       "name": "Aurora Capital Partners",
       "aum_m": 6000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 26,
       "focus": [
@@ -3179,7 +3154,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_244",
       "name": "Trivest Partners",
       "aum_m": 5906,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 70,
       "focus": [
@@ -3231,7 +3206,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_248",
       "name": "Rivean Capital",
       "aum_m": 5866,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 50,
       "focus": [
@@ -3244,7 +3219,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_249",
       "name": "Seven2",
       "aum_m": 5866,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 53,
       "focus": [
@@ -3374,7 +3349,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_259",
       "name": "Maxis Capital",
       "aum_m": 5500,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 9,
       "focus": [
@@ -3426,7 +3401,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_263",
       "name": "BV Investment Partners",
       "aum_m": 5365,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 33,
       "focus": [
@@ -3439,7 +3414,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_264",
       "name": "Flexstone Partners",
       "aum_m": 5337,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 39,
       "focus": [
@@ -3465,7 +3440,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_266",
       "name": "Silversmith Capital Partners",
       "aum_m": 5283,
-      "stage": 0,
+      "stage": 5,
       "stageLabel": "Unknown",
       "peopleCount": 37,
       "focus": [
@@ -3478,7 +3453,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_267",
       "name": "Lovell Minnick Partners",
       "aum_m": 5168,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 32,
       "focus": [
@@ -3491,7 +3466,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_268",
       "name": "Birch Hill Equity Partners",
       "aum_m": 5000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 23,
       "focus": [
@@ -3530,7 +3505,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_271",
       "name": "Gemspring Capital",
       "aum_m": 5000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 60,
       "focus": [
@@ -3543,7 +3518,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_272",
       "name": "Lead Edge Capital",
       "aum_m": 5000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 62,
       "focus": [
@@ -3569,7 +3544,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_274",
       "name": "Navis Capital Partners",
       "aum_m": 5000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 44,
       "focus": [
@@ -3582,7 +3557,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_275",
       "name": "Serent Capital",
       "aum_m": 5000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 50,
       "focus": [
@@ -3620,7 +3595,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_278",
       "name": "Motive Partners",
       "aum_m": 4882,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 28,
       "focus": [
@@ -3633,7 +3608,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_279",
       "name": "Turn/River Capital",
       "aum_m": 4862,
-      "stage": 0,
+      "stage": 6,
       "stageLabel": "Unknown",
       "peopleCount": 35,
       "focus": [
@@ -3646,7 +3621,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_280",
       "name": "Cove Hill Partners",
       "aum_m": 4813,
-      "stage": 0,
+      "stage": 4,
       "stageLabel": "Unknown",
       "peopleCount": 33,
       "focus": [
@@ -3711,7 +3686,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_285",
       "name": "BlackFin Capital Partners",
       "aum_m": 4693,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 40,
       "focus": [
@@ -3802,7 +3777,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_292",
       "name": "Tailwind Capital",
       "aum_m": 4692,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 22,
       "focus": [
@@ -3841,7 +3816,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_295",
       "name": "Waud Capital Partners",
       "aum_m": 4622,
-      "stage": 0,
+      "stage": 5,
       "stageLabel": "Unknown",
       "peopleCount": 44,
       "focus": [
@@ -3893,7 +3868,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_299",
       "name": "NMS Capital Group",
       "aum_m": 4500,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 6,
       "focus": [
@@ -3906,7 +3881,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_300",
       "name": "OceanSound Partners",
       "aum_m": 4500,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 26,
       "focus": [
@@ -3919,7 +3894,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_301",
       "name": "Thompson Street Capital Partners",
       "aum_m": 4500,
-      "stage": 0,
+      "stage": 7,
       "stageLabel": "Unknown",
       "peopleCount": 40,
       "focus": [
@@ -3932,7 +3907,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_302",
       "name": "Bow River Capital",
       "aum_m": 4400,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 52,
       "focus": [
@@ -3945,7 +3920,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_303",
       "name": "JLL Partners",
       "aum_m": 4320,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 24,
       "focus": [
@@ -3971,7 +3946,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_305",
       "name": "Brighton Park Capital",
       "aum_m": 4202,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 36,
       "focus": [
@@ -4023,7 +3998,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_309",
       "name": "Affirma Capital",
       "aum_m": 4000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 52,
       "focus": [
@@ -4036,7 +4011,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_310",
       "name": "Rubicon Technology Partners",
       "aum_m": 4000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 30,
       "focus": [
@@ -4101,7 +4076,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_315",
       "name": "Graham Partners",
       "aum_m": 3949,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 55,
       "focus": [
@@ -4140,7 +4115,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_318",
       "name": "Pacific Avenue Capital Partners",
       "aum_m": 3800,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 28,
       "focus": [
@@ -4229,9 +4204,9 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_325",
-      "name": "Cressey &amp; Company",
+      "name": "Cressey & Company",
       "aum_m": 3622,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 26,
       "focus": [
@@ -4256,7 +4231,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_327",
       "name": "Deutsche Private Equity",
       "aum_m": 3520,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 29,
       "focus": [
@@ -4347,7 +4322,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_334",
       "name": "Imperial Capital Group",
       "aum_m": 3500,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 30,
       "focus": [
@@ -4373,7 +4348,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_336",
       "name": "Palladium Equity Partners",
       "aum_m": 3500,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 34,
       "focus": [
@@ -4412,7 +4387,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_339",
       "name": "Gauge Capital",
       "aum_m": 3400,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 50,
       "focus": [
@@ -4423,7 +4398,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_340",
-      "name": "H&amp;Q Asia Pacific",
+      "name": "H&Q Asia Pacific",
       "aum_m": 3400,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -4464,7 +4439,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_343",
       "name": "Sumeru Equity Partners",
       "aum_m": 3383,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 29,
       "focus": [
@@ -4503,7 +4478,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_346",
       "name": "Clairvest Group (TSE: CVG)",
       "aum_m": 3301,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 30,
       "focus": [
@@ -4516,7 +4491,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_347",
       "name": "Luminate Capital Partners",
       "aum_m": 3296,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 11,
       "focus": [
@@ -4529,7 +4504,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_348",
       "name": "Recognize Partners",
       "aum_m": 3285,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 20,
       "focus": [
@@ -4594,7 +4569,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_353",
       "name": "WP Global Partners",
       "aum_m": 3143,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 11,
       "focus": [
@@ -4620,7 +4595,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_355",
       "name": "ZMC",
       "aum_m": 3078,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 20,
       "focus": [
@@ -4633,7 +4608,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_356",
       "name": "Ethos Capital (Boston)",
       "aum_m": 3068,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 29,
       "focus": [
@@ -4685,7 +4660,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_360",
       "name": "Creador",
       "aum_m": 3000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 29,
       "focus": [
@@ -4724,7 +4699,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_363",
       "name": "Five Elms Capital",
       "aum_m": 3000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 38,
       "focus": [
@@ -4750,7 +4725,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_365",
       "name": "Helios Investment Partners",
       "aum_m": 3000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 21,
       "focus": [
@@ -4944,7 +4919,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_380",
       "name": "Avesi Partners",
       "aum_m": 2827,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 23,
       "focus": [
@@ -4970,7 +4945,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_382",
       "name": "Trilantic Europe",
       "aum_m": 2816,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 30,
       "focus": [
@@ -5060,7 +5035,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_389",
       "name": "Norwest Equity Partners",
       "aum_m": 2700,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 18,
       "focus": [
@@ -5099,7 +5074,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_392",
       "name": "The Chernin Group",
       "aum_m": 2598,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 27,
       "focus": [
@@ -5112,7 +5087,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_393",
       "name": "Capvis",
       "aum_m": 2581,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 28,
       "focus": [
@@ -5164,7 +5139,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_397",
       "name": "Greenbelt Capital Management",
       "aum_m": 2500,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 14,
       "focus": [
@@ -5190,7 +5165,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_399",
       "name": "Smash Capital",
       "aum_m": 2500,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 14,
       "focus": [
@@ -5229,7 +5204,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_402",
       "name": "Mainsail Partners",
       "aum_m": 2479,
-      "stage": 0,
+      "stage": 7,
       "stageLabel": "Unknown",
       "peopleCount": 37,
       "focus": [
@@ -5281,7 +5256,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_406",
       "name": "TZP Group",
       "aum_m": 2409,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 41,
       "focus": [
@@ -5306,7 +5281,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_408",
       "name": "Gulf Capital",
       "aum_m": 2400,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 16,
       "focus": [
@@ -5384,7 +5359,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_414",
       "name": "Argos.",
       "aum_m": 2346,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 50,
       "focus": [
@@ -5436,7 +5411,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_418",
       "name": "Sverica Capital Management",
       "aum_m": 2329,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 19,
       "focus": [
@@ -5475,7 +5450,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_421",
       "name": "Africinvest",
       "aum_m": 2299,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 27,
       "focus": [
@@ -5488,7 +5463,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_422",
       "name": "GenNx360 Capital Partners",
       "aum_m": 2295,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 28,
       "focus": [
@@ -5618,7 +5593,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_432",
       "name": "Banneker Partners",
       "aum_m": 2205,
-      "stage": 0,
+      "stage": 4,
       "stageLabel": "Unknown",
       "peopleCount": 19,
       "focus": [
@@ -5709,7 +5684,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_439",
       "name": "Martis Capital Management",
       "aum_m": 2138,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 22,
       "focus": [
@@ -5722,7 +5697,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_440",
       "name": "Glade Brook Capital Partners",
       "aum_m": 2128,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 10,
       "focus": [
@@ -5735,7 +5710,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_441",
       "name": "Resurgens Technology Partners",
       "aum_m": 2111,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 25,
       "focus": [
@@ -5748,7 +5723,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_442",
       "name": "Sunstone Partners",
       "aum_m": 2110,
-      "stage": 0,
+      "stage": 5,
       "stageLabel": "Unknown",
       "peopleCount": 25,
       "focus": [
@@ -5761,7 +5736,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_443",
       "name": "Diversis Capital",
       "aum_m": 2098,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 19,
       "focus": [
@@ -5774,7 +5749,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_444",
       "name": "Clearview Capital",
       "aum_m": 2078,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 25,
       "focus": [
@@ -5982,7 +5957,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_460",
       "name": "Hidden Harbor Capital Partners",
       "aum_m": 2000,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 27,
       "focus": [
@@ -6047,7 +6022,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_465",
       "name": "Peterson Partners",
       "aum_m": 2000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 27,
       "focus": [
@@ -6202,7 +6177,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_477",
       "name": "Clarion Capital Partners",
       "aum_m": 1925,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 24,
       "focus": [
@@ -6318,7 +6293,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_486",
       "name": "GrowthCurve Capital",
       "aum_m": 1828,
-      "stage": 0,
+      "stage": 7,
       "stageLabel": "Unknown",
       "peopleCount": 15,
       "focus": [
@@ -6383,7 +6358,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_491",
       "name": "Truelink Capital",
       "aum_m": 1767,
-      "stage": 0,
+      "stage": 6,
       "stageLabel": "Unknown",
       "peopleCount": 10,
       "focus": [
@@ -6394,7 +6369,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_492",
-      "name": "BNP Paribas Dveloppement",
+      "name": "BNP Paribas Development",
       "aum_m": 1760,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -6448,7 +6423,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_496",
       "name": "KLAR Partners",
       "aum_m": 1760,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 21,
       "focus": [
@@ -6537,7 +6512,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_503",
-      "name": "CLAUSEN Consulting &amp; Invest",
+      "name": "CLAUSEN Consulting & Invest",
       "aum_m": 1700,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -6578,7 +6553,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_506",
       "name": "Volition Capital",
       "aum_m": 1700,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 31,
       "focus": [
@@ -6604,7 +6579,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_508",
       "name": "Tritium Partners",
       "aum_m": 1689,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 25,
       "focus": [
@@ -6630,7 +6605,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_510",
       "name": "Avance Investment Management",
       "aum_m": 1653,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 18,
       "focus": [
@@ -6643,7 +6618,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_511",
       "name": "Corten Capital",
       "aum_m": 1642,
-      "stage": 0,
+      "stage": 3,
       "stageLabel": "Unknown",
       "peopleCount": 13,
       "focus": [
@@ -6669,7 +6644,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_513",
       "name": "Carrick Capital Partners",
       "aum_m": 1638,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 15,
       "focus": [
@@ -6734,7 +6709,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_518",
       "name": "Main Street Capital (NYS: MAIN)",
       "aum_m": 1600,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 56,
       "focus": [
@@ -6799,7 +6774,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_523",
       "name": "DC Capital Partners",
       "aum_m": 1558,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 14,
       "focus": [
@@ -6927,7 +6902,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_533",
-      "name": "Muller &amp; Monroe Asset Management",
+      "name": "Muller & Monroe Asset Management",
       "aum_m": 1523,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -7098,7 +7073,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_546",
       "name": "Mission Holdings",
       "aum_m": 1500,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 8,
       "focus": [
@@ -7163,7 +7138,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_551",
       "name": "Housatonic Partners",
       "aum_m": 1483,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 12,
       "focus": [
@@ -7202,7 +7177,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_554",
       "name": "Mountaingate Capital",
       "aum_m": 1455,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 17,
       "focus": [
@@ -7370,7 +7345,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_567",
       "name": "Bregal Milestone",
       "aum_m": 1400,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 22,
       "focus": [
@@ -7422,7 +7397,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_571",
       "name": "Stonehenge Partners",
       "aum_m": 1400,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 12,
       "focus": [
@@ -7603,7 +7578,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_585",
       "name": "Delta-v Capital",
       "aum_m": 1318,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 13,
       "focus": [
@@ -7641,7 +7616,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_588",
       "name": "Baird Capital",
       "aum_m": 1300,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 30,
       "focus": [
@@ -7692,7 +7667,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_592",
       "name": "Mediterrania Capital Partners",
       "aum_m": 1290,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 25,
       "focus": [
@@ -7729,7 +7704,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_595",
-      "name": "Guosen H&amp;S",
+      "name": "Guosen H&S",
       "aum_m": 1263,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -7782,7 +7757,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_599",
       "name": "Radian Capital",
       "aum_m": 1231,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 8,
       "focus": [
@@ -7925,7 +7900,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_610",
       "name": "American Pacific Group",
       "aum_m": 1200,
-      "stage": 0,
+      "stage": 6,
       "stageLabel": "Unknown",
       "peopleCount": 18,
       "focus": [
@@ -7990,7 +7965,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_615",
       "name": "O2 Investment Partners",
       "aum_m": 1193,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 21,
       "focus": [
@@ -8237,7 +8212,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_634",
       "name": "Argosy Private Equity",
       "aum_m": 1100,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 22,
       "focus": [
@@ -8326,7 +8301,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_641",
-      "name": "E&amp;F Private Equity",
+      "name": "E&F Private Equity",
       "aum_m": 1089,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -8484,7 +8459,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_653",
       "name": "Dominus Capital",
       "aum_m": 1043,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 12,
       "focus": [
@@ -8549,7 +8524,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_658",
       "name": "Vantage Capital",
       "aum_m": 1012,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 14,
       "focus": [
@@ -8575,7 +8550,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_660",
       "name": "Clearhaven Partners",
       "aum_m": 1012,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 10,
       "focus": [
@@ -8586,7 +8561,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_661",
-      "name": "China Merchants China Direct Investments (H...",
+      "name": "China Merchants China Direct Investments",
       "aum_m": 1004,
       "stage": 0,
       "stageLabel": "Unknown",
@@ -8938,7 +8913,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_688",
       "name": "Long Ridge Equity Partners",
       "aum_m": 1000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 29,
       "focus": [
@@ -9042,7 +9017,7 @@ window.PE_FIRMS_DATA = [
       "id": "firm_20251004_696",
       "name": "Strattam Capital",
       "aum_m": 1000,
-      "stage": 0,
+      "stage": 2,
       "stageLabel": "Unknown",
       "peopleCount": 12,
       "focus": [
