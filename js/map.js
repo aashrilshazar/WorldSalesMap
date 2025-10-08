@@ -12,6 +12,61 @@ const US_FOCUS_LON_RANGE = [-170, -50];
 const US_FOCUS_LAT_RANGE = [15, 75];
 const COUNTY_DISPLAY_ZOOM = 1.5;
 
+function hexToRgb(hex) {
+    if (typeof hex !== 'string') return null;
+    const trimmed = hex.trim().replace('#', '');
+    if (trimmed.length !== 3 && trimmed.length !== 6) return null;
+    const normalized = trimmed.length === 3
+        ? trimmed.split('').map(ch => ch + ch).join('')
+        : trimmed;
+    const num = Number.parseInt(normalized, 16);
+    if (Number.isNaN(num)) return null;
+    return {
+        r: (num >> 16) & 255,
+        g: (num >> 8) & 255,
+        b: num & 255
+    };
+}
+
+function rgbChannelToHex(value) {
+    const clamped = Math.max(0, Math.min(255, Math.round(value)));
+    return clamped.toString(16).padStart(2, '0');
+}
+
+function rgbToHex(rgb) {
+    if (!rgb) return null;
+    return `#${rgbChannelToHex(rgb.r)}${rgbChannelToHex(rgb.g)}${rgbChannelToHex(rgb.b)}`;
+}
+
+function adjustColor(hex, amount = 0.2) {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return hex;
+    const factor = Math.max(-1, Math.min(1, amount));
+    const apply = channel => {
+        if (factor >= 0) {
+            return channel + (255 - channel) * factor;
+        }
+        return channel * (1 + factor);
+    };
+    return rgbToHex({
+        r: apply(rgb.r),
+        g: apply(rgb.g),
+        b: apply(rgb.b)
+    }) || hex;
+}
+
+function getStageBaseColor(stage) {
+    return getStageColor(stage) || '#22c55e';
+}
+
+function getStageHoverColor(stage) {
+    return adjustColor(getStageBaseColor(stage), 0.18);
+}
+
+function getStageHighlightColor(stage) {
+    return adjustColor(getStageBaseColor(stage), 0.32);
+}
+
 let pathGenerator = null;
 let graticule = null;
 let countryFeatures = [];
@@ -213,7 +268,7 @@ function updateMapBubbles() {
         .attr('r', d => d.radius)
         .attr('cx', d => d.projected[0])
         .attr('cy', d => d.projected[1])
-        .style('fill', '#22c55e')
+        .style('fill', d => getStageBaseColor(d.stage))
         .on('click', (event, d) => {
             event.stopPropagation();
             if (typeof focusFirmOnMap === 'function') {
@@ -223,16 +278,18 @@ function updateMapBubbles() {
             }
         })
         .on('mouseover', function(event, d) {
+            const highlightColor = getStageHighlightColor(d.stage);
+            const hoverColor = getStageHoverColor(d.stage);
             if (state.activeFirmId === d.id) {
                 d3.select(this)
                     .interrupt('highlight')
-                    .style('fill', '#60a5fa');
+                    .style('fill', highlightColor);
             } else {
                 d3.select(this)
                     .transition()
                     .duration(200)
                     .attr('r', Math.max(d.radius * 1.25, MAP_BUBBLE_MIN_RADIUS * 1.5))
-                    .style('fill', '#4ade80');
+                    .style('fill', hoverColor);
             }
 
             const content = `<strong>${d.name}</strong><br>
@@ -242,16 +299,18 @@ function updateMapBubbles() {
             showTooltip(event, content);
         })
         .on('mouseout', function(event, d) {
+            const baseColor = getStageBaseColor(d.stage);
+            const highlightColor = getStageHighlightColor(d.stage);
             if (state.activeFirmId === d.id) {
                 d3.select(this)
                     .interrupt('highlight')
-                    .style('fill', '#60a5fa');
+                    .style('fill', highlightColor);
             } else {
                 d3.select(this)
                     .transition()
                     .duration(200)
                     .attr('r', d.radius)
-                    .style('fill', '#22c55e');
+                    .style('fill', baseColor);
             }
             hideTooltip();
         });
@@ -541,7 +600,8 @@ function resetBubbleAppearance(bubbleNode, { smooth = true } = {}) {
         delete bubbleNode.dataset.originalRadius;
     }
 
-    bubbleNode.style.fill = '#22c55e';
+    const datum = d3.select(bubbleNode).datum();
+    bubbleNode.style.fill = getStageBaseColor(datum?.stage);
     bubbleNode.classList.remove('highlighted');
 }
 
@@ -562,7 +622,8 @@ function applyHighlightToBubble(bubbleNode, { smooth = true } = {}) {
         bubbleNode.setAttribute('r', targetRadius);
     }
 
-    bubbleNode.style.fill = '#60a5fa';
+    const datum = d3.select(bubbleNode).datum();
+    bubbleNode.style.fill = getStageHighlightColor(datum?.stage);
     bubbleNode.classList.add('highlighted');
 }
 
