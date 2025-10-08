@@ -32,7 +32,6 @@ const state = {
     mapBubbleLayout: [],
     mapVisibleBubbles: [],
     mapBubbleLayoutDirty: true,
-    mapBubbleNodeCache: new Map(),
     mapBounds: null,
     mapProjection: null,
     mapZoom: null,
