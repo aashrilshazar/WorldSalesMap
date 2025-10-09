@@ -55,6 +55,7 @@ function renderKanban() {
 function enableKanbanHorizontalScroll(container) {
     if (!container || container.dataset.kanbanScroll === 'true') return;
     container.dataset.kanbanScroll = 'true';
+    container._kanbanScrollRemainder = 0;
 
     container.addEventListener('wheel', event => {
         if (event.ctrlKey) return; // allow pinch-to-zoom gestures
@@ -70,10 +71,24 @@ function enableKanbanHorizontalScroll(container) {
             if (canScrollVertically) return;
         }
 
+        if (horizontal && event.deltaX !== 0) {
+            // Let native horizontal scrolling handle the gesture
+            return;
+        }
+
         const delta = horizontal ? event.deltaX : event.deltaY;
         if (!delta) return;
 
-        container.scrollLeft += delta;
+        container._kanbanScrollRemainder = (container._kanbanScrollRemainder || 0) + delta;
+        const scrollAmount = container._kanbanScrollRemainder > 0
+            ? Math.floor(container._kanbanScrollRemainder)
+            : Math.ceil(container._kanbanScrollRemainder);
+
+        if (scrollAmount !== 0) {
+            container.scrollLeft += scrollAmount;
+            container._kanbanScrollRemainder -= scrollAmount;
+        }
+
         event.preventDefault();
     }, { passive: false });
 }
