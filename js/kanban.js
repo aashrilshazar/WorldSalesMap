@@ -1,6 +1,7 @@
 // Kanban view functionality
 function renderKanban() {
     const container = $('kanban-view');
+    setupKanbanScrolling(container);
     container.innerHTML = CONFIG.STAGE_NAMES.map((name, i) => {
         const firms = state.firms.filter(f => f.stage === i + 1);
         return `
@@ -48,5 +49,80 @@ function renderKanban() {
                 }
             }
         };
+    });
+}
+
+function setupKanbanScrolling(container) {
+    if (!container || container.dataset.scrollSetup) return;
+    container.dataset.scrollSetup = 'true';
+
+    container.addEventListener('wheel', e => {
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+        const column = e.target.closest('.kanban-column');
+        if (column) {
+            const canScrollVertically =
+                (e.deltaY < 0 && column.scrollTop > 0) ||
+                (e.deltaY > 0 && column.scrollTop + column.clientHeight < column.scrollHeight);
+            if (canScrollVertically) return;
+        }
+
+        if (e.deltaY !== 0) {
+            container.scrollLeft += e.deltaY;
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    let pointerId = null;
+    let startX = 0;
+    let startScroll = 0;
+
+    const stopDragging = () => {
+        if (pointerId === null) return;
+        if (typeof container.releasePointerCapture === 'function') {
+            try {
+                container.releasePointerCapture(pointerId);
+            } catch (err) {
+                // ignore release errors caused by pointer already released
+            }
+        }
+        pointerId = null;
+        container.classList.remove('kanban-grabbing');
+    };
+
+    container.addEventListener('pointerdown', e => {
+        if (e.button !== 0) return;
+        if (e.target.closest('.kanban-card')) return;
+
+        pointerId = e.pointerId;
+        startX = e.clientX;
+        startScroll = container.scrollLeft;
+        container.classList.add('kanban-grabbing');
+
+        if (typeof container.setPointerCapture === 'function') {
+            try {
+                container.setPointerCapture(pointerId);
+            } catch (err) {
+                // ignore capture errors on unsupported platforms
+            }
+        }
+    });
+
+    container.addEventListener('pointermove', e => {
+        if (pointerId === null || e.pointerId !== pointerId) return;
+        const deltaX = e.clientX - startX;
+        container.scrollLeft = startScroll - deltaX;
+        e.preventDefault();
+    });
+
+    container.addEventListener('pointerup', e => {
+        if (pointerId === null || e.pointerId !== pointerId) return;
+        stopDragging();
+    });
+
+    container.addEventListener('pointercancel', stopDragging);
+    container.addEventListener('pointerleave', e => {
+        if (pointerId === null || e.pointerId !== pointerId) return;
+        stopDragging();
     });
 }

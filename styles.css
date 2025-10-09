@@ -671,10 +671,16 @@ button.active {
     overflow-x: auto;
     overflow-y: hidden;
     align-items: flex-start;
+    cursor: grab;
 }
 
 #kanban-view.active {
     display: flex;
+}
+
+#kanban-view.kanban-grabbing {
+    cursor: grabbing;
+    user-select: none;
 }
 
 /* Canvas & Map */
