@@ -5,7 +5,7 @@ function renderKanban() {
         const firms = state.firms.filter(f => f.stage === i + 1);
         return `
             <div class="kanban-column" data-stage="${i + 1}">
-                <div class="kanban-header stage-${i + 1}">${i + 1}. ${name}</div>
+                <div class="kanban-header stage-${i + 1}">${i + 1}. ${name} (${firms.length})</div>
                 ${firms.map(f => `
                     <div class="kanban-card" draggable="true" data-firm-id="${f.id}">
                         <div class="kanban-card-name">${f.name}</div>
