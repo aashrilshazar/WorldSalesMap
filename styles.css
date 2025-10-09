@@ -666,23 +666,28 @@ button.active {
 }
 
 #kanban-view {
-    gap: 1rem;
-    padding: 1rem;
-    overflow-x: auto;
-    overflow-y: hidden;
-    align-items: flex-start;
-    cursor: grab;
-    overscroll-behavior-x: contain;
-    touch-action: pan-x;
+    height: 100%;
+    display: none;
 }
 
 #kanban-view.active {
-    display: flex;
+    display: block;
 }
 
-#kanban-view.kanban-grabbing {
-    cursor: grabbing;
-    user-select: none;
+.kanban-scroll {
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 1rem 1rem 1.5rem;
+    box-sizing: border-box;
+}
+
+.kanban-columns {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    min-height: calc(100% - 1rem);
 }
 
 /* Canvas & Map */
