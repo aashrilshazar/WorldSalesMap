@@ -671,6 +671,8 @@ button.active {
     overflow-x: auto;
     overflow-y: hidden;
     align-items: flex-start;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
 }
 
 #kanban-view.active {

@@ -1,6 +1,7 @@
 // Kanban view functionality
 function renderKanban() {
     const container = $('kanban-view');
+    enableKanbanHorizontalScroll(container);
     container.innerHTML = CONFIG.STAGE_NAMES.map((name, i) => {
         const firms = state.firms.filter(f => f.stage === i + 1);
         return `
@@ -49,4 +50,30 @@ function renderKanban() {
             }
         };
     });
+}
+
+function enableKanbanHorizontalScroll(container) {
+    if (!container || container.dataset.kanbanScroll === 'true') return;
+    container.dataset.kanbanScroll = 'true';
+
+    container.addEventListener('wheel', event => {
+        if (event.ctrlKey) return; // allow pinch-to-zoom gestures
+
+        const horizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+        const column = event.target.closest('.kanban-column');
+
+        if (!horizontal && column) {
+            const { scrollTop, scrollHeight, clientHeight } = column;
+            const canScrollVertically =
+                (event.deltaY < 0 && scrollTop > 0) ||
+                (event.deltaY > 0 && scrollTop + clientHeight < scrollHeight);
+            if (canScrollVertically) return;
+        }
+
+        const delta = horizontal ? event.deltaX : event.deltaY;
+        if (!delta) return;
+
+        container.scrollLeft += delta;
+        event.preventDefault();
+    }, { passive: false });
 }
