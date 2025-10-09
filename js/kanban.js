@@ -57,20 +57,23 @@ function setupKanbanScrolling(container) {
     container.dataset.scrollSetup = 'true';
 
     container.addEventListener('wheel', e => {
-        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+        if (e.ctrlKey) return;
 
         const column = e.target.closest('.kanban-column');
-        if (column) {
+        const preferVertical = Math.abs(e.deltaY) > Math.abs(e.deltaX);
+
+        if (preferVertical && column) {
             const canScrollVertically =
                 (e.deltaY < 0 && column.scrollTop > 0) ||
                 (e.deltaY > 0 && column.scrollTop + column.clientHeight < column.scrollHeight);
             if (canScrollVertically) return;
         }
 
-        if (e.deltaY !== 0) {
-            container.scrollLeft += e.deltaY;
-            e.preventDefault();
-        }
+        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        if (!delta) return;
+
+        container.scrollLeft += delta;
+        e.preventDefault();
     }, { passive: false });
 
     let pointerId = null;
