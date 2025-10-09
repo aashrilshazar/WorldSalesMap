@@ -53,42 +53,56 @@ function renderKanban() {
 }
 
 function enableKanbanHorizontalScroll(container) {
-    if (!container || container.dataset.kanbanScroll === 'true') return;
-    container.dataset.kanbanScroll = 'true';
-    container._kanbanScrollRemainder = 0;
+    if (!container || container._kanbanScrollSetup) return;
+    container._kanbanScrollSetup = true;
 
     container.addEventListener('wheel', event => {
-        if (event.ctrlKey) return; // allow pinch-to-zoom gestures
-
-        const horizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
-        const column = event.target.closest('.kanban-column');
-
-        if (!horizontal && column) {
-            const { scrollTop, scrollHeight, clientHeight } = column;
-            const canScrollVertically =
-                (event.deltaY < 0 && scrollTop > 0) ||
-                (event.deltaY > 0 && scrollTop + clientHeight < scrollHeight);
-            if (canScrollVertically) return;
-        }
-
-        if (horizontal && event.deltaX !== 0) {
-            // Let native horizontal scrolling handle the gesture
-            return;
-        }
-
-        const delta = horizontal ? event.deltaX : event.deltaY;
-        if (!delta) return;
-
-        container._kanbanScrollRemainder = (container._kanbanScrollRemainder || 0) + delta;
-        const scrollAmount = container._kanbanScrollRemainder > 0
-            ? Math.floor(container._kanbanScrollRemainder)
-            : Math.ceil(container._kanbanScrollRemainder);
-
-        if (scrollAmount !== 0) {
-            container.scrollLeft += scrollAmount;
-            container._kanbanScrollRemainder -= scrollAmount;
-        }
-
+        if (event.ctrlKey) return;
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        container.scrollLeft += event.deltaY;
         event.preventDefault();
     }, { passive: false });
+
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartScroll = 0;
+
+    const stopDrag = pointerId => {
+        if (!isDragging) return;
+        isDragging = false;
+        if (typeof container.releasePointerCapture === 'function' && pointerId !== undefined) {
+            try {
+                container.releasePointerCapture(pointerId);
+            } catch (err) {
+                // ignore
+            }
+        }
+        container.classList.remove('kanban-grabbing');
+    };
+
+    container.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        if (event.target.closest('.kanban-card')) return;
+        isDragging = true;
+        dragStartX = event.clientX;
+        dragStartScroll = container.scrollLeft;
+        container.classList.add('kanban-grabbing');
+        if (typeof container.setPointerCapture === 'function') {
+            try {
+                container.setPointerCapture(event.pointerId);
+            } catch (err) {
+                // ignore
+            }
+        }
+    });
+
+    container.addEventListener('pointermove', event => {
+        if (!isDragging) return;
+        const delta = event.clientX - dragStartX;
+        container.scrollLeft = dragStartScroll - delta;
+    });
+
+    container.addEventListener('pointerup', event => stopDrag(event.pointerId));
+    container.addEventListener('pointercancel', event => stopDrag(event.pointerId));
+    container.addEventListener('pointerleave', () => stopDrag());
 }
