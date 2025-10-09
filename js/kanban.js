@@ -1,7 +1,11 @@
 // Kanban view functionality
 function renderKanban() {
     const container = $('kanban-view');
+<<<<<<< ours
     const columnsHtml = CONFIG.STAGE_NAMES.map((name, i) => {
+=======
+    container.innerHTML = CONFIG.STAGE_NAMES.map((name, i) => {
+>>>>>>> theirs
         const firms = state.firms.filter(f => f.stage === i + 1);
         return `
             <div class="kanban-column" data-stage="${i + 1}">
@@ -56,4 +60,8 @@ function renderKanban() {
             }
         };
     });
+<<<<<<< ours
 }
+=======
+}
+>>>>>>> theirs

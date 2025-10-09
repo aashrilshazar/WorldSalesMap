@@ -666,14 +666,23 @@ button.active {
 }
 
 #kanban-view {
+<<<<<<< ours
     height: 100%;
     display: none;
+=======
+    gap: 1rem;
+    padding: 1rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    align-items: flex-start;
+>>>>>>> theirs
 }
 
 #kanban-view.active {
     display: block;
 }
 
+<<<<<<< ours
 .kanban-scroll {
     width: 100%;
     height: 100%;
@@ -690,6 +699,8 @@ button.active {
     min-height: calc(100% - 1rem);
 }
 
+=======
+>>>>>>> theirs
 /* Canvas & Map */
 canvas, #map-container svg {
     width: 100%;
