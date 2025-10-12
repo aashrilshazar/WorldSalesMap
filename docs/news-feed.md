@@ -37,6 +37,7 @@ Environment list values can be provided as JSON arrays (recommended) or comma-se
 
 - **Express (local/server deploys):** runs an initial fetch at startup and repeats every `NEWS_REFRESH_HOURS`. Requests always return the most recent successful snapshot. Google API calls are rate limited between firms to avoid per-minute quota limits.
 - **Vercel (`api/news`):** caches results for `NEWS_REFRESH_SECONDS`. Each refresh fans out across dedicated fund/deal/hire/promotion queries per firm, tries a strict CX first (if provided), then falls back to the broader CX while honoring the same rate limits. Pass `?refresh=1` to bypass the cache and force a new fetch (still subject to Google API quota).
+- **Client UI:** stores the last snapshot in local storage and only triggers a new fetch when the operator clicks the Refresh button, preventing automatic query bursts on page load.
 
 ## Firm Coverage
 

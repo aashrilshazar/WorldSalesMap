@@ -1,13 +1,37 @@
 const NEWS_ENDPOINT = '/api/news';
-const NEWS_REFRESH_MS = 15 * 60 * 1000;
 const NEWS_LOADING_MESSAGE = 'Loading latest firm headlines...';
 const NEWS_ERROR_INITIAL = 'Unable to load news headlines. Try again soon.';
 const NEWS_ERROR_REFRESH = 'Unable to refresh news feed. Showing cached results.';
 const NEWS_MIN_HEIGHT = 160;
 const NEWS_SAFE_HEADROOM = 120;
+const NEWS_EMPTY_PROMPT = 'No headlines yet. Use Refresh to load the latest articles.';
+const NEWS_STORAGE_KEY = 'news_feed_snapshot';
 
 let newsFetchPromise = null;
 let newsBarHeightPx = null;
+
+function loadStoredNewsSnapshot() {
+    if (typeof localStorage === 'undefined') return null;
+    try {
+        const raw = localStorage.getItem(NEWS_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.items)) return null;
+        return parsed;
+    } catch (error) {
+        console.warn('Failed to restore cached news snapshot:', error);
+        return null;
+    }
+}
+
+function persistNewsSnapshot(snapshot) {
+    if (typeof localStorage === 'undefined') return;
+    try {
+        localStorage.setItem(NEWS_STORAGE_KEY, JSON.stringify(snapshot));
+    } catch (error) {
+        console.warn('Failed to cache news snapshot locally:', error);
+    }
+}
 
 function initNewsBar() {
     const searchInput = $('news-search');
@@ -22,6 +46,12 @@ function initNewsBar() {
         toggleButton.dataset.bound = 'true';
     }
 
+    const refreshButton = $('news-refresh');
+    if (refreshButton && !refreshButton.dataset.bound) {
+        refreshButton.addEventListener('click', handleNewsRefresh);
+        refreshButton.dataset.bound = 'true';
+    }
+
     const listEl = $('news-list');
     if (listEl && !listEl.dataset.actionsBound) {
         listEl.addEventListener('click', handleNewsListClick);
@@ -30,17 +60,22 @@ function initNewsBar() {
 
     setupNewsResizer();
 
-    state.newsItems = Array.isArray(state.newsItems) ? state.newsItems : [];
-    state.newsLoading = true;
-    renderNewsBar();
-
-    loadNewsFromServer();
-
-    if (!state.newsRefreshInterval) {
-        state.newsRefreshInterval = setInterval(() => {
-            loadNewsFromServer();
-        }, NEWS_REFRESH_MS);
+    if (state.newsRefreshInterval) {
+        clearInterval(state.newsRefreshInterval);
+        state.newsRefreshInterval = null;
     }
+
+    state.newsItems = Array.isArray(state.newsItems) ? state.newsItems : [];
+    state.newsLoading = false;
+
+    const storedSnapshot = loadStoredNewsSnapshot();
+    if (storedSnapshot) {
+        state.newsItems = Array.isArray(storedSnapshot.items) ? storedSnapshot.items : [];
+        state.newsLastUpdated = storedSnapshot.lastUpdated || null;
+        state.newsError = null;
+    }
+
+    renderNewsBar();
 }
 
 function handleNewsSearch(event) {
@@ -51,6 +86,10 @@ function handleNewsSearch(event) {
 function handleNewsToggle() {
     state.newsCollapsed = !state.newsCollapsed;
     renderNewsBar();
+}
+
+function handleNewsRefresh() {
+    loadNewsFromServer({ forceRefresh: true });
 }
 
 function handleNewsListClick(event) {
@@ -90,6 +129,7 @@ function renderNewsBar() {
     if (!bar) return;
 
     const toggleButton = $('news-toggle');
+    const refreshButton = $('news-refresh');
     const listEl = $('news-list');
     const countEl = $('news-count');
 
@@ -110,6 +150,12 @@ function renderNewsBar() {
     }
 
     if (!listEl || !countEl) return;
+
+    if (refreshButton) {
+        refreshButton.disabled = !!state.newsLoading;
+        refreshButton.textContent = state.newsLoading ? 'Refreshing...' : 'Refresh';
+        refreshButton.setAttribute('aria-busy', state.newsLoading ? 'true' : 'false');
+    }
 
     const visibleNews = getVisibleNews();
 
@@ -149,7 +195,7 @@ function renderNewsBar() {
     if (!visibleNews.length) {
         const message = state.newsFilter
             ? 'No articles match your search yet.'
-            : 'No recent headlines for the configured firms yet.';
+            : NEWS_EMPTY_PROMPT;
         listEl.innerHTML = `<div class="news-empty">${message}</div>`;
         return;
     }
@@ -231,7 +277,7 @@ function formatRelativeTime(isoDate) {
     return `${weeks}w ago`;
 }
 
-function loadNewsFromServer() {
+function loadNewsFromServer({ forceRefresh = false } = {}) {
     if (newsFetchPromise) {
         return newsFetchPromise;
     }
@@ -240,9 +286,11 @@ function loadNewsFromServer() {
     state.newsLoading = true;
     renderNewsBar();
 
+    const endpoint = forceRefresh ? `${NEWS_ENDPOINT}?refresh=1` : NEWS_ENDPOINT;
+
     newsFetchPromise = (async () => {
         try {
-            const response = await fetch(NEWS_ENDPOINT, { cache: 'no-store' });
+            const response = await fetch(endpoint, { cache: 'no-store' });
             if (!response.ok) {
                 throw new Error(`Request failed with status ${response.status}`);
             }
@@ -251,9 +299,16 @@ function loadNewsFromServer() {
             const items = Array.isArray(data.items) ? data.items : [];
             const filtered = items.filter(item => item && !state.dismissedNewsIds.has(item.id));
 
+            const lastUpdated = data.lastUpdated || new Date().toISOString();
+
             state.newsItems = filtered;
-            state.newsLastUpdated = data.lastUpdated || null;
+            state.newsLastUpdated = lastUpdated;
             state.newsError = null;
+
+            persistNewsSnapshot({
+                items: filtered,
+                lastUpdated
+            });
         } catch (error) {
             console.error('Failed to load news feed', error);
             state.newsItems = previousItems;
