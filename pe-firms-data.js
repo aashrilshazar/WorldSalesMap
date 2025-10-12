@@ -9054,7 +9054,7 @@ window.PE_FIRMS_DATA = [
     },
     {
       "id": "firm_20251004_699",
-      "name": "ZX Ventures (Other Capital Markets/Institutio...",
+      "name": "ZX Ventures",
       "aum_m": 1000,
       "stage": 0,
       "stageLabel": "Unknown",
