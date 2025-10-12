@@ -2,7 +2,7 @@ import { Redis } from '@upstash/redis';
 
 let redisClient = null;
 
-function getRedis() {
+export function getRedisClient() {
     if (redisClient) return redisClient;
     const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
     const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -19,7 +19,7 @@ const STATUS_KEY_PREFIX = 'gmail-ticket-status:';
 
 export async function getTicketStatuses(ids = []) {
     if (!ids.length) return new Map();
-    const redis = getRedis();
+    const redis = getRedisClient();
 
     const pipeline = redis.pipeline();
     ids.forEach(id => pipeline.get(STATUS_KEY_PREFIX + id));
@@ -40,7 +40,7 @@ export async function getTicketStatuses(ids = []) {
 }
 
 export async function setTicketStatus(id, statusPayload) {
-    const redis = getRedis();
+    const redis = getRedisClient();
     if (!statusPayload) {
         await redis.del(STATUS_KEY_PREFIX + id);
         return null;
@@ -54,7 +54,7 @@ export async function setTicketStatus(id, statusPayload) {
 }
 
 export async function clearTicketStatus(id) {
-    const redis = getRedis();
+    const redis = getRedisClient();
     await redis.del(STATUS_KEY_PREFIX + id);
 }
 

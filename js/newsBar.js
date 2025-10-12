@@ -4,6 +4,7 @@ const NEWS_ERROR_INITIAL = 'Unable to load news headlines. Try again soon.';
 const NEWS_ERROR_REFRESH = 'Unable to refresh news feed. Showing cached results.';
 const NEWS_MIN_HEIGHT = 160;
 const NEWS_SAFE_HEADROOM = 120;
+const NEWS_REFRESH_POLL_MS = 8000;
 const NEWS_EMPTY_PROMPT = 'No headlines yet. Use Refresh to load the latest articles.';
 const NEWS_STORAGE_KEY = 'news_feed_snapshot';
 
@@ -33,6 +34,20 @@ function persistNewsSnapshot(snapshot) {
     }
 }
 
+function cancelNewsAutoPoll() {
+    if (state.newsRefreshTimer) {
+        clearTimeout(state.newsRefreshTimer);
+        state.newsRefreshTimer = null;
+    }
+}
+
+function scheduleNewsAutoPoll() {
+    cancelNewsAutoPoll();
+    state.newsRefreshTimer = setTimeout(() => {
+        loadNewsFromServer({ forceRefresh: true });
+    }, NEWS_REFRESH_POLL_MS);
+}
+
 function initNewsBar() {
     const searchInput = $('news-search');
     if (searchInput && !searchInput.dataset.bound) {
@@ -60,13 +75,12 @@ function initNewsBar() {
 
     setupNewsResizer();
 
-    if (state.newsRefreshInterval) {
-        clearInterval(state.newsRefreshInterval);
-        state.newsRefreshInterval = null;
-    }
+    cancelNewsAutoPoll();
 
     state.newsItems = Array.isArray(state.newsItems) ? state.newsItems : [];
     state.newsLoading = false;
+    state.newsJobStatus = 'idle';
+    state.newsJob = null;
 
     const storedSnapshot = loadStoredNewsSnapshot();
     if (storedSnapshot) {
@@ -76,6 +90,8 @@ function initNewsBar() {
     }
 
     renderNewsBar();
+
+    loadNewsFromServer();
 }
 
 function handleNewsSearch(event) {
@@ -89,6 +105,10 @@ function handleNewsToggle() {
 }
 
 function handleNewsRefresh() {
+    cancelNewsAutoPoll();
+    state.newsJobStatus = 'running';
+    state.newsJob = null;
+    state.newsError = null;
     loadNewsFromServer({ forceRefresh: true });
 }
 
@@ -132,6 +152,8 @@ function renderNewsBar() {
     const refreshButton = $('news-refresh');
     const listEl = $('news-list');
     const countEl = $('news-count');
+    const jobStatus = state.newsJobStatus;
+    const jobInfo = state.newsJob;
 
     if (state.newsCollapsed) {
         bar.classList.add('news-bar--collapsed');
@@ -152,9 +174,19 @@ function renderNewsBar() {
     if (!listEl || !countEl) return;
 
     if (refreshButton) {
-        refreshButton.disabled = !!state.newsLoading;
-        refreshButton.textContent = state.newsLoading ? 'Refreshing...' : 'Refresh';
-        refreshButton.setAttribute('aria-busy', state.newsLoading ? 'true' : 'false');
+        const isRunning = jobStatus === 'running';
+        const isBusy = state.newsLoading || isRunning;
+        refreshButton.disabled = isBusy;
+        if (state.newsLoading) {
+            refreshButton.textContent = 'Refreshing...';
+        } else if (isRunning && typeof jobInfo?.percentComplete === 'number') {
+            refreshButton.textContent = `Running ${jobInfo.percentComplete}%`;
+        } else if (jobStatus === 'complete') {
+            refreshButton.textContent = 'Refresh';
+        } else {
+            refreshButton.textContent = 'Refresh';
+        }
+        refreshButton.setAttribute('aria-busy', isBusy ? 'true' : 'false');
     }
 
     const visibleNews = getVisibleNews();
@@ -172,7 +204,15 @@ function renderNewsBar() {
         let label = count ? `${count} article${count === 1 ? '' : 's'}` : 'No articles';
 
         if (state.newsLoading && state.newsItems.length) {
-            label += ' • refreshing...';
+            label += ' • requesting...';
+        } else if (jobStatus === 'running' && typeof jobInfo?.percentComplete === 'number') {
+            label += ` • refresh ${jobInfo.percentComplete}%`;
+            if (
+                typeof jobInfo?.processedFirms === 'number' &&
+                typeof jobInfo?.totalFirms === 'number'
+            ) {
+                label += ` (${jobInfo.processedFirms}/${jobInfo.totalFirms})`;
+            }
         } else if (state.newsLastUpdated) {
             const updated = formatRelativeTime(state.newsLastUpdated);
             if (updated) {
@@ -181,7 +221,11 @@ function renderNewsBar() {
         }
 
         if (state.newsError && state.newsItems.length) {
-            label += ' • refresh failed';
+            label += ' • issues detected';
+        } else if (jobStatus === 'error') {
+            label += ' • refresh error';
+        } else if (jobStatus === 'complete' && jobInfo?.completedAt) {
+            label += ' • refresh complete';
         }
 
         countEl.textContent = label;
@@ -193,9 +237,20 @@ function renderNewsBar() {
     }
 
     if (!visibleNews.length) {
-        const message = state.newsFilter
-            ? 'No articles match your search yet.'
-            : NEWS_EMPTY_PROMPT;
+        let message;
+        if (state.newsFilter) {
+            message = 'No articles match your search yet.';
+        } else if (jobStatus === 'running') {
+            const percentLabel =
+                typeof jobInfo?.percentComplete === 'number'
+                    ? ` (${jobInfo.percentComplete}% complete)`
+                    : '';
+            message = `Fetching new headlines${percentLabel}. Leave this tab open to continue.`;
+        } else if (jobStatus === 'error') {
+            message = 'Refresh failed. Try again or check the console for details.';
+        } else {
+            message = NEWS_EMPTY_PROMPT;
+        }
         listEl.innerHTML = `<div class="news-empty">${message}</div>`;
         return;
     }
@@ -278,11 +333,19 @@ function formatRelativeTime(isoDate) {
 }
 
 function loadNewsFromServer({ forceRefresh = false } = {}) {
+    cancelNewsAutoPoll();
+
     if (newsFetchPromise) {
         return newsFetchPromise;
     }
 
     const previousItems = (state.newsItems || []).slice();
+    const previousError = state.newsError;
+
+    if (forceRefresh) {
+        state.newsJobStatus = 'running';
+    }
+
     state.newsLoading = true;
     renderNewsBar();
 
@@ -299,20 +362,55 @@ function loadNewsFromServer({ forceRefresh = false } = {}) {
             const items = Array.isArray(data.items) ? data.items : [];
             const filtered = items.filter(item => item && !state.dismissedNewsIds.has(item.id));
 
-            const lastUpdated = data.lastUpdated || new Date().toISOString();
+            const lastUpdated = data.lastUpdated || state.newsLastUpdated || new Date().toISOString();
 
             state.newsItems = filtered;
             state.newsLastUpdated = lastUpdated;
-            state.newsError = null;
+            state.newsJobStatus = data.status || (forceRefresh ? 'running' : 'idle');
+            if (data.job) {
+                state.newsJob = data.job;
+            } else if (state.newsJobStatus !== 'running') {
+                state.newsJob = null;
+            }
+
+            const errorCount = Array.isArray(data.errors) ? data.errors.length : 0;
+            if (errorCount > 0) {
+                const sampleFirms = data.errors
+                    .map(entry => entry?.firm)
+                    .filter(Boolean)
+                    .slice(0, 3);
+                const sampleSuffix = sampleFirms.length
+                    ? ` (${sampleFirms.join(', ')}${errorCount > sampleFirms.length ? '…' : ''})`
+                    : '';
+                state.newsError = `${errorCount} firm${errorCount === 1 ? '' : 's'} failed to refresh${sampleSuffix}`;
+            } else {
+                state.newsError = null;
+            }
+            if (errorCount > 0) {
+                console.warn('News refresh returned errors:', data.errors);
+            }
 
             persistNewsSnapshot({
                 items: filtered,
                 lastUpdated
             });
+
+            if (state.newsJobStatus === 'running') {
+                scheduleNewsAutoPoll();
+            } else {
+                cancelNewsAutoPoll();
+            }
         } catch (error) {
             console.error('Failed to load news feed', error);
             state.newsItems = previousItems;
-            state.newsError = previousItems.length ? NEWS_ERROR_REFRESH : NEWS_ERROR_INITIAL;
+            state.newsError =
+                previousItems.length || previousError
+                    ? NEWS_ERROR_REFRESH
+                    : NEWS_ERROR_INITIAL;
+            state.newsJobStatus = state.newsJobStatus === 'running' ? 'running' : 'error';
+            if (forceRefresh || state.newsJobStatus === 'running') {
+                scheduleNewsAutoPoll();
+            }
         }
     })()
         .finally(() => {

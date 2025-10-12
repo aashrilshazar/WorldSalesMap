@@ -52,7 +52,9 @@ const state = {
     newsLoading: false,
     newsError: null,
     newsLastUpdated: null,
-    newsRefreshInterval: null,
+    newsRefreshTimer: null,
+    newsJobStatus: 'idle',
+    newsJob: null,
     dismissedNewsIds: new Set(),
     activeHighlightTimeout: null
 };

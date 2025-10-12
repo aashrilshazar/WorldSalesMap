@@ -5,22 +5,28 @@ import {
     GOOGLE_CSE_ID,
     GOOGLE_CSE_ID_STRICT,
     NEWS_FETCH_BATCH_SIZE,
+    NEWS_FIRMS_PER_BATCH,
     NEWS_GL,
     NEWS_HL,
-    NEWS_REFRESH_SECONDS,
+    NEWS_JOB_TTL_SECONDS,
     NEWS_RESULTS_PER_FIRM,
     NEWS_SAFE,
     NEWS_SEARCH_TEMPLATE,
+    NEWS_SNAPSHOT_TTL_SECONDS,
     NEWS_SORT,
     NEWS_DATE_RESTRICT,
     NEWS_EXCLUDE_TERMS,
     NEWS_NEGATIVE_SITE_EXCLUDES
 } from './config.js';
-import { getCache, setCache } from './cache.js';
+import {
+    loadSnapshot,
+    saveSnapshot,
+    loadJobState,
+    saveJobState,
+    clearJobState
+} from './newsStorage.js';
 import { NEWS_FIRM_NAMES } from '../../shared/newsFirms.js';
 import { withNewsRateLimit } from '../../shared/newsRateLimiter.js';
-
-export const NEWS_CACHE_KEY = 'news_feed_snapshot';
 
 const customSearch = google.customsearch('v1');
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -39,6 +45,16 @@ const NEGATIVE_SITE_SUFFIX = NEWS_NEGATIVE_SITE_EXCLUDES.length
 const NEGATIVE_TERMS_VALUE = NEWS_EXCLUDE_TERMS.length
     ? NEWS_EXCLUDE_TERMS.map(term => `"${term}"`).join(' ')
     : '';
+const FIRMS_PER_BATCH = Math.max(1, Number.isFinite(NEWS_FIRMS_PER_BATCH) ? NEWS_FIRMS_PER_BATCH : 5);
+const SNAPSHOT_TTL_SECONDS = Math.max(
+    60,
+    Number.isFinite(NEWS_SNAPSHOT_TTL_SECONDS) ? NEWS_SNAPSHOT_TTL_SECONDS : 24 * 60 * 60
+);
+const JOB_STATE_TTL_SECONDS = Math.max(
+    SNAPSHOT_TTL_SECONDS,
+    Number.isFinite(NEWS_JOB_TTL_SECONDS) ? NEWS_JOB_TTL_SECONDS : 24 * 60 * 60
+);
+const MAX_ERROR_ENTRIES = 500;
 
 const NEWS_QUERY_BUILDERS = {
     fund: firm => ({
@@ -230,41 +246,236 @@ async function fetchFirmNews(firmName) {
     return collected.slice(0, limit);
 }
 
-async function refreshNewsSnapshot() {
-    const aggregated = [];
-    const errors = [];
+async function fetchBatchForFirms(firmNames) {
+    const allItems = [];
+    const batchErrors = [];
 
-    for (const firmName of NEWS_FIRM_NAMES) {
+    for (const firmName of firmNames) {
         try {
-            const results = await fetchFirmNews(firmName);
-            aggregated.push(...results);
+            const items = await fetchFirmNews(firmName);
+            allItems.push(...items);
         } catch (error) {
-            console.error(`News fetch failed for ${firmName}:`, error.message);
-            errors.push({ firm: firmName, message: error.message });
+            const message = error?.message || 'Failed to fetch news';
+            batchErrors.push({
+                firm: firmName,
+                message,
+                at: new Date().toISOString()
+            });
         }
     }
 
-    aggregated.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+    return { items: allItems, errors: batchErrors };
+}
 
-    const snapshot = {
-        items: aggregated,
-        lastUpdated: new Date().toISOString(),
-        errors: errors.length ? errors : null
+function mergeSnapshotItems(existingItems = [], newItems = []) {
+    if (!Array.isArray(existingItems)) existingItems = [];
+    if (!Array.isArray(newItems)) newItems = [];
+
+    const merged = new Map();
+    for (const item of existingItems) {
+        if (item?.id) {
+            merged.set(item.id, item);
+        }
+    }
+    for (const item of newItems) {
+        if (item?.id) {
+            merged.set(item.id, item);
+        }
+    }
+
+    const sorted = Array.from(merged.values()).sort(
+        (a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0)
+    );
+
+    return enforcePerFirmLimit(sorted);
+}
+
+function enforcePerFirmLimit(items) {
+    const limit = Math.max(1, NEWS_RESULTS_PER_FIRM);
+    if (!Array.isArray(items) || !items.length) return [];
+    if (!limit) return items;
+
+    const perFirmCounts = new Map();
+    const result = [];
+
+    for (const item of items) {
+        const firm = item?.firm || 'unknown';
+        const current = perFirmCounts.get(firm) || 0;
+        if (current >= limit) continue;
+        perFirmCounts.set(firm, current + 1);
+        result.push(item);
+    }
+
+    return result;
+}
+
+function mergeErrors(existingErrors = null, newErrors = []) {
+    const combined = [
+        ...(Array.isArray(existingErrors) ? existingErrors : []),
+        ...newErrors
+    ];
+    if (!combined.length) return null;
+    if (combined.length > MAX_ERROR_ENTRIES) {
+        return combined.slice(combined.length - MAX_ERROR_ENTRIES);
+    }
+    return combined;
+}
+
+function buildResponse(snapshot = {}, job = null, status = 'idle', batch = null) {
+    const items = Array.isArray(snapshot.items) ? snapshot.items : [];
+    const normalizedItems = items
+        .slice()
+        .sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0));
+
+    let derivedStatus = status;
+    if (!job && typeof snapshot.jobStatus === 'string') {
+        derivedStatus = snapshot.jobStatus;
+    }
+
+    const totalFirms = job?.totalFirms ?? NEWS_FIRM_NAMES.length;
+    const processed = job?.processed ?? job?.nextIndex ?? 0;
+    const percentComplete =
+        totalFirms > 0 ? Math.min(100, Math.round((processed / totalFirms) * 100)) : null;
+
+    const jobInfo = job
+        ? {
+              id: job.id,
+              totalFirms,
+              processedFirms: processed,
+              nextIndex: job.nextIndex ?? processed,
+              batchSize: job.batchSize ?? FIRMS_PER_BATCH,
+              startedAt: job.startedAt || null,
+              lastBatchAt: job.lastBatchAt || null,
+              completedAt: job.completedAt || null,
+              percentComplete
+          }
+        : null;
+
+    return {
+        items: normalizedItems,
+        lastUpdated: snapshot.lastUpdated || null,
+        errors: snapshot.errors || null,
+        status: derivedStatus,
+        job: jobInfo,
+        batch
     };
-
-    setCache(NEWS_CACHE_KEY, snapshot, NEWS_REFRESH_SECONDS);
-    return snapshot;
 }
 
 export async function fetchNews(forceRefresh = false) {
+    const totalFirms = NEWS_FIRM_NAMES.length;
+    const snapshot = await loadSnapshot();
+    let jobState = await loadJobState();
+
     if (!forceRefresh) {
-        const cached = getCache(NEWS_CACHE_KEY);
-        if (cached) {
-            return cached;
-        }
+        const status =
+            jobState && jobState.completedAt ? 'complete' : jobState ? 'running' : 'idle';
+        return buildResponse(snapshot || {}, jobState, status);
     }
 
-    return refreshNewsSnapshot();
+    const nowIso = new Date().toISOString();
+    const baseItems = Array.isArray(snapshot?.items) ? snapshot.items : [];
+    let baseErrors = snapshot?.errors || null;
+
+    if (
+        !jobState ||
+        jobState.completedAt ||
+        jobState.nextIndex >= totalFirms ||
+        !jobState.id
+    ) {
+        await clearJobState();
+        jobState = {
+            id: `job_${Date.now()}`,
+            totalFirms,
+            nextIndex: 0,
+            processed: 0,
+            batchSize: FIRMS_PER_BATCH,
+            startedAt: nowIso,
+            lastBatchAt: null,
+            completedAt: null
+        };
+        await saveJobState(jobState, JOB_STATE_TTL_SECONDS);
+
+        const initialSnapshot = {
+            items: baseItems,
+            lastUpdated: snapshot?.lastUpdated || null,
+            errors: null,
+            jobId: jobState.id,
+            jobStatus: 'running'
+        };
+        await saveSnapshot(initialSnapshot, SNAPSHOT_TTL_SECONDS);
+        baseErrors = null;
+    }
+
+    const startIndex = jobState.nextIndex || 0;
+    if (startIndex >= totalFirms) {
+        jobState.completedAt = jobState.completedAt || nowIso;
+        await saveJobState(jobState, JOB_STATE_TTL_SECONDS);
+
+        const finalSnapshot = (await loadSnapshot()) || {
+            items: baseItems,
+            lastUpdated: jobState.completedAt,
+            errors: baseErrors,
+            jobStatus: 'complete'
+        };
+
+        if (!finalSnapshot.lastUpdated) {
+            finalSnapshot.lastUpdated = jobState.completedAt;
+            await saveSnapshot(finalSnapshot, SNAPSHOT_TTL_SECONDS);
+        }
+
+        return buildResponse(finalSnapshot, jobState, 'complete');
+    }
+
+    const endIndex = Math.min(totalFirms, startIndex + FIRMS_PER_BATCH);
+    const firms = NEWS_FIRM_NAMES.slice(startIndex, endIndex);
+    const batchResult = await fetchBatchForFirms(firms);
+
+    const currentSnapshot = (await loadSnapshot()) || {
+        items: baseItems,
+        lastUpdated: null,
+        errors: baseErrors
+    };
+
+    const existingIds = new Set((Array.isArray(currentSnapshot.items) ? currentSnapshot.items : []).map(item => item.id).filter(Boolean));
+    const mergedItems = mergeSnapshotItems(currentSnapshot.items, batchResult.items);
+    const mergedErrors = mergeErrors(currentSnapshot.errors, batchResult.errors);
+    const updatedSnapshot = {
+        ...currentSnapshot,
+        items: mergedItems,
+        errors: mergedErrors,
+        lastUpdated: nowIso,
+        jobId: jobState.id,
+        jobStatus: endIndex >= totalFirms ? 'complete' : 'running'
+    };
+
+    await saveSnapshot(updatedSnapshot, SNAPSHOT_TTL_SECONDS);
+
+    jobState.nextIndex = endIndex;
+    jobState.processed = endIndex;
+    jobState.batchSize = FIRMS_PER_BATCH;
+    jobState.lastBatchAt = nowIso;
+
+    if (endIndex >= totalFirms) {
+        jobState.completedAt = nowIso;
+        updatedSnapshot.jobStatus = 'complete';
+        updatedSnapshot.lastUpdated = nowIso;
+        await saveSnapshot(updatedSnapshot, SNAPSHOT_TTL_SECONDS);
+    }
+
+    await saveJobState(jobState, JOB_STATE_TTL_SECONDS);
+
+    const status = jobState.completedAt ? 'complete' : 'running';
+    const newItemIds = batchResult.items
+        .map(item => item?.id)
+        .filter(id => id && !existingIds.has(id));
+    const batchMeta = {
+        firms,
+        newItems: newItemIds,
+        errors: batchResult.errors,
+        range: { start: startIndex, end: endIndex }
+    };
+
+    return buildResponse(updatedSnapshot, jobState, status, batchMeta);
 }
 
 function buildFirmSignalQueries(firmName) {

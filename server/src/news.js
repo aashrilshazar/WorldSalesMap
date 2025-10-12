@@ -18,7 +18,9 @@ const REFRESH_INTERVAL_MS = Math.max(1, NEWS_REFRESH_HOURS) * 60 * 60 * 1000;
 const newsState = {
     items: [],
     lastUpdated: null,
-    lastError: null
+    lastError: null,
+    status: 'idle',
+    job: null
 };
 
 let inFlightRefresh = null;
@@ -154,6 +156,7 @@ async function fetchFirmNews(firmName) {
 }
 
 async function refreshNewsInternal() {
+    const startedAt = new Date();
     const aggregated = [];
     const errors = [];
 
@@ -168,9 +171,24 @@ async function refreshNewsInternal() {
 
     aggregated.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 
+    const completedAt = new Date().toISOString();
+    const totalFirms = NEWS_FIRM_NAMES.length;
+
     newsState.items = aggregated;
-    newsState.lastUpdated = new Date().toISOString();
+    newsState.lastUpdated = completedAt;
     newsState.lastError = errors.length ? errors : null;
+    newsState.status = 'complete';
+    newsState.job = {
+        id: 'server-refresh',
+        totalFirms,
+        processedFirms: totalFirms,
+        nextIndex: totalFirms,
+        batchSize: totalFirms,
+        startedAt: startedAt.toISOString(),
+        lastBatchAt: completedAt,
+        completedAt,
+        percentComplete: 100
+    };
 
     return newsState;
 }
@@ -208,6 +226,8 @@ export async function refreshNews() {
     inFlightRefresh = refreshNewsInternal()
         .catch(error => {
             newsState.lastError = [{ firm: 'all', message: error.message }];
+            newsState.status = 'error';
+            newsState.job = null;
             throw error;
         })
         .finally(() => {
@@ -226,9 +246,28 @@ export async function getNewsSnapshot({ forceRefresh = false } = {}) {
         }
     }
 
+    const status = newsState.status || (newsState.items.length ? 'complete' : 'idle');
+    const job = newsState.job
+        ? { ...newsState.job }
+        : status === 'complete'
+        ? {
+              id: 'server-refresh',
+              totalFirms: NEWS_FIRM_NAMES.length,
+              processedFirms: NEWS_FIRM_NAMES.length,
+              nextIndex: NEWS_FIRM_NAMES.length,
+              batchSize: NEWS_FIRM_NAMES.length,
+              startedAt: newsState.lastUpdated,
+              lastBatchAt: newsState.lastUpdated,
+              completedAt: newsState.lastUpdated,
+              percentComplete: 100
+          }
+        : null;
+
     return {
         items: newsState.items.slice(),
         lastUpdated: newsState.lastUpdated,
-        errors: newsState.lastError
+        errors: newsState.lastError,
+        status,
+        job
     };
 }
