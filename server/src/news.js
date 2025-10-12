@@ -9,9 +9,10 @@ import {
     NEWS_SEARCH_TEMPLATE
 } from './config.js';
 import { NEWS_FIRM_NAMES } from '../../shared/newsFirms.js';
+import { withNewsRateLimit } from '../../shared/newsRateLimiter.js';
 
 const customSearch = google.customsearch('v1');
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const REFRESH_INTERVAL_MS = Math.max(1, NEWS_REFRESH_HOURS) * 60 * 60 * 1000;
 
 const newsState = {
@@ -30,7 +31,7 @@ function buildQuery(firmName) {
 function isRecentEnough(date) {
     if (!date) return true;
     const age = Date.now() - date.getTime();
-    return age <= SEVEN_DAYS_MS;
+    return age <= ONE_DAY_MS;
 }
 
 function extractPublishedAt(item) {
@@ -129,13 +130,15 @@ async function fetchFirmNews(firmName) {
         const query = buildQuery(firmName);
         const fetchCount = Math.max(NEWS_RESULTS_PER_FIRM, NEWS_FETCH_BATCH_SIZE);
         const num = Math.min(10, Math.max(1, fetchCount));
-        const { data } = await customSearch.cse.list({
-            auth: GOOGLE_CSE_API_KEY,
-            cx: GOOGLE_CSE_ID,
-            q: query,
-            dateRestrict: 'd7',
-            num
-        });
+        const { data } = await withNewsRateLimit(() =>
+            customSearch.cse.list({
+                auth: GOOGLE_CSE_API_KEY,
+                cx: GOOGLE_CSE_ID,
+                q: query,
+                dateRestrict: 'd1',
+                num
+            })
+        );
 
         const items = Array.isArray(data.items) ? data.items : [];
         const normalized = items
