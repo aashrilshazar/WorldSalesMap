@@ -16,7 +16,7 @@ Add these to `.env` (server) and your Vercel project:
 | `GOOGLE_CSE_API_KEY` | Yes | - | API key with the Custom Search JSON API enabled. |
 | `GOOGLE_CSE_ID_STRICT` | optional | - | Optional news-only CX. Used first, with fallback to `GOOGLE_CSE_ID` if no hits or errors. |
 | `NEWS_SEARCH_TEMPLATE` | optional | `"<firm name>" ("fund" OR "funds" OR "raises" OR "closed" OR "deal" OR "acquisition" OR "promotes" OR "hire" OR "joins")` | Base query template; `<firm name>` placeholder is replaced per firm. |
-| `NEWS_RESULTS_PER_FIRM` | optional | `1` | Max articles returned per firm each refresh. |
+| `NEWS_RESULTS_PER_FIRM` | optional | `3` | Max articles returned per firm each refresh. |
 | `NEWS_FETCH_BATCH_SIZE` | optional | `10` | Number of raw search results requested from Google before trimming. |
 | `NEWS_REFRESH_HOURS` (server) | optional | `3` | Interval between scheduled refreshes in the long-running Express server. |
 | `NEWS_DATE_RESTRICT` | optional | `d1` | Custom Search `dateRestrict` parameter (e.g. `d1`, `w1`). |
@@ -43,6 +43,7 @@ Refresh progress and the aggregated snapshot are persisted in the existing Upsta
 - **Vercel (`api/news`):** processes refresh jobs in small batches (see `NEWS_FIRMS_PER_BATCH`). Each call adds another slice of firms, persisting progress and interim results in Upstash so users see headlines stream in while staying well under timeout and quota limits. Pass `?refresh=1` to advance the job; cached snapshots continue to serve immediately.
 - **Client UI:** stores the last snapshot in local storage and only triggers a new fetch when the operator clicks the Refresh button. While a refresh job is running it polls the API on a timer, so the feed gradually fills without hammering the backend.
 - A full roster (≈700 firms) will take multiple minutes to process. Leave the tab open; each poll advances another batch and updates the displayed progress.
+- Use the **Export CSV** button in the news bar (or call `/api/news?format=csv`) to download the current snapshot including firm, headline, URL, source, timestamp, summary, and tags. The export reflects whatever data is cached at the moment you trigger it.
 
 ### API Response
 

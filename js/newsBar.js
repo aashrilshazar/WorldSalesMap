@@ -7,6 +7,7 @@ const NEWS_SAFE_HEADROOM = 120;
 const NEWS_REFRESH_POLL_MS = 8000;
 const NEWS_EMPTY_PROMPT = 'No headlines yet. Use Refresh to load the latest articles.';
 const NEWS_STORAGE_KEY = 'news_feed_snapshot';
+const NEWS_EXPORT_ENDPOINT = '/api/news?format=csv';
 
 let newsFetchPromise = null;
 let newsBarHeightPx = null;
@@ -61,6 +62,12 @@ function initNewsBar() {
         toggleButton.dataset.bound = 'true';
     }
 
+    const exportButton = $('news-export');
+    if (exportButton && !exportButton.dataset.bound) {
+        exportButton.addEventListener('click', handleNewsExport);
+        exportButton.dataset.bound = 'true';
+    }
+
     const refreshButton = $('news-refresh');
     if (refreshButton && !refreshButton.dataset.bound) {
         refreshButton.addEventListener('click', handleNewsRefresh);
@@ -102,6 +109,44 @@ function handleNewsSearch(event) {
 function handleNewsToggle() {
     state.newsCollapsed = !state.newsCollapsed;
     renderNewsBar();
+}
+
+async function handleNewsExport() {
+    if (state.newsExporting) return;
+
+    state.newsExporting = true;
+    renderNewsBar();
+
+    try {
+        const response = await fetch(NEWS_EXPORT_ENDPOINT, {
+            headers: { Accept: 'text/csv' }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Export failed with status ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        const disposition = response.headers.get('content-disposition');
+        const match = disposition && disposition.match(/filename="?([^";]+)"?/i);
+        const filename = match ? match[1] : `news-export-${new Date().toISOString()}.csv`;
+
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Failed to export news feed', error);
+        state.newsError = 'Export failed. Please try again soon.';
+    } finally {
+        state.newsExporting = false;
+        renderNewsBar();
+    }
 }
 
 function handleNewsRefresh() {
@@ -150,6 +195,7 @@ function renderNewsBar() {
 
     const toggleButton = $('news-toggle');
     const refreshButton = $('news-refresh');
+    const exportButton = $('news-export');
     const listEl = $('news-list');
     const countEl = $('news-count');
     const jobStatus = state.newsJobStatus;
@@ -187,6 +233,12 @@ function renderNewsBar() {
             refreshButton.textContent = 'Refresh';
         }
         refreshButton.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+    }
+
+    if (exportButton) {
+        exportButton.disabled = !!state.newsExporting;
+        exportButton.textContent = state.newsExporting ? 'Exporting...' : 'Export CSV';
+        exportButton.setAttribute('aria-busy', state.newsExporting ? 'true' : 'false');
     }
 
     const visibleNews = getVisibleNews();

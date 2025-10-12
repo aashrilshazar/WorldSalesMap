@@ -60,7 +60,7 @@ export const GOOGLE_CSE_ID_STRICT = process.env.GOOGLE_CSE_ID_STRICT || '';
 export const NEWS_SEARCH_TEMPLATE =
     process.env.NEWS_SEARCH_TEMPLATE ||
     '"<firm name>" ("fund" OR "funds" OR "raises" OR "closed" OR "deal" OR "acquisition" OR "promotes" OR "hire" OR "joins")';
-export const NEWS_RESULTS_PER_FIRM = Number(process.env.NEWS_RESULTS_PER_FIRM || 1);
+export const NEWS_RESULTS_PER_FIRM = Number(process.env.NEWS_RESULTS_PER_FIRM || 3);
 export const NEWS_FETCH_BATCH_SIZE = Number(process.env.NEWS_FETCH_BATCH_SIZE || 10);
 export const NEWS_FIRMS_PER_BATCH = Number(process.env.NEWS_FIRMS_PER_BATCH || 15);
 export const NEWS_JOB_TTL_SECONDS = Number(process.env.NEWS_JOB_TTL_SECONDS || 24 * 60 * 60);

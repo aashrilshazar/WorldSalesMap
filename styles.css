@@ -400,7 +400,8 @@ body {
 }
 
 .news-bar__toggle,
-.news-bar__refresh {
+.news-bar__refresh,
+.news-bar__export {
     background: rgba(59,130,246,0.18);
     border: 1px solid rgba(59,130,246,0.35);
     border-radius: 6px;
@@ -412,11 +413,17 @@ body {
 }
 
 .news-bar__toggle:hover,
-.news-bar__refresh:hover {
+.news-bar__refresh:hover,
+.news-bar__export:hover {
     background: rgba(59,130,246,0.28);
 }
 
 .news-bar__refresh[disabled] {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.news-bar__export[disabled] {
     opacity: 0.6;
     cursor: wait;
 }
