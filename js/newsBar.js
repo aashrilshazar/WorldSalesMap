@@ -13,6 +13,7 @@ const NEWS_EXPORT_ENDPOINT = '/api/news?format=csv';
 
 let newsFetchPromise = null;
 let newsBarHeightPx = null;
+let firmNameLookupCache = { source: null, map: new Map() };
 
 function loadStoredNewsSnapshot() {
     if (typeof localStorage === 'undefined') return null;
@@ -49,6 +50,71 @@ function scheduleNewsAutoPoll() {
     state.newsRefreshTimer = setTimeout(() => {
         loadNewsFromServer({ forceRefresh: true });
     }, NEWS_REFRESH_POLL_MS);
+}
+
+function normalizeFirmName(value) {
+    return (value || '')
+        .toString()
+        .toLowerCase()
+        .replace(/&/g, ' and ')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function buildFirmNameIndex() {
+    const firms = Array.isArray(state.firms) ? state.firms : [];
+    if (firmNameLookupCache.source === firms && firmNameLookupCache.map) {
+        return firmNameLookupCache.map;
+    }
+
+    const lookup = new Map();
+    firms.forEach(firm => {
+        if (!firm) return;
+        const names = [firm.name, ...(Array.isArray(firm.aliases) ? firm.aliases : [])];
+        names.forEach(name => {
+            const key = normalizeFirmName(name);
+            if (key && !lookup.has(key)) {
+                lookup.set(key, firm);
+            }
+        });
+    });
+
+    firmNameLookupCache = { source: firms, map: lookup };
+    return lookup;
+}
+
+function computeNewsHighlightFirmIds(items) {
+    if (!Array.isArray(items) || !items.length) return [];
+    const lookup = buildFirmNameIndex();
+    if (!lookup.size) return [];
+
+    const seen = new Set();
+    const ids = [];
+
+    items.forEach(item => {
+        const key = normalizeFirmName(item?.firm);
+        if (!key) return;
+        const firm = lookup.get(key);
+        if (firm && !seen.has(firm.id)) {
+            seen.add(firm.id);
+            ids.push(firm.id);
+        }
+    });
+
+    return ids;
+}
+
+function applyNewsHighlightsToMap(items) {
+    const firmIds = computeNewsHighlightFirmIds(items);
+    if (typeof setNewsHighlightedFirms === 'function') {
+        setNewsHighlightedFirms(firmIds);
+    } else {
+        state.newsHighlightedFirmIds = new Set(firmIds);
+        if (typeof scheduleGlobeRender === 'function') {
+            scheduleGlobeRender();
+        }
+    }
 }
 
 function initNewsBar() {
@@ -319,6 +385,9 @@ function getVisibleNews() {
 }
 
 function renderNewsBar() {
+    const visibleNews = getVisibleNews();
+    applyNewsHighlightsToMap(visibleNews);
+
     const bar = $('news-bar');
     if (!bar) return;
 
@@ -389,8 +458,6 @@ function renderNewsBar() {
         cancelButton.textContent = state.newsCanceling ? 'Cancelling...' : 'Cancel Refresh';
         cancelButton.setAttribute('aria-busy', state.newsCanceling ? 'true' : 'false');
     }
-
-    const visibleNews = getVisibleNews();
 
     if (state.newsLoading && !state.newsItems.length) {
         countEl.textContent = 'Loading...';

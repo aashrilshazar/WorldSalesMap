@@ -47,6 +47,7 @@ const state = {
         countiesVisible: null
     },
     newsItems: [],
+    newsHighlightedFirmIds: new Set(),
     newsFilter: '',
     newsCollapsed: false,
     newsLoading: false,
