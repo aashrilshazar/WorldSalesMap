@@ -10,6 +10,7 @@ import {
     NEWS_HL,
     NEWS_JOB_TTL_SECONDS,
     NEWS_RESULTS_PER_FIRM,
+    NEWS_LR,
     NEWS_SAFE,
     NEWS_SEARCH_TEMPLATE,
     NEWS_SNAPSHOT_TTL_SECONDS,
@@ -581,7 +582,8 @@ async function executeSearchWithSortFallback(params, cx) {
         ...(params.excludeTerms ? { excludeTerms: params.excludeTerms } : {}),
         ...(params.gl || NEWS_GL ? { gl: params.gl || NEWS_GL } : {}),
         ...(params.hl || NEWS_HL ? { hl: params.hl || NEWS_HL } : {}),
-        ...(params.safe || NEWS_SAFE ? { safe: params.safe || NEWS_SAFE } : {})
+        ...(params.safe || NEWS_SAFE ? { safe: params.safe || NEWS_SAFE } : {}),
+        ...(params.lr || NEWS_LR ? { lr: params.lr || NEWS_LR } : {})
     };
 
     const sortValue = params.sort || NEWS_SORT;

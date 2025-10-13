@@ -23,6 +23,7 @@ Add these to `.env` (server) and your Vercel project:
 | `NEWS_SORT` | optional | `date` | Set to `date` when your CX has Result Sorting enabled; leave blank to disable. |
 | `NEWS_GL` | optional | `us` | Two-letter geo bias for Custom Search. |
 | `NEWS_HL` | optional | `en` | Interface language bias for Custom Search. |
+| `NEWS_LR` | optional | `lang_en` | Language restriction (`lang_en`, `lang_fr`, etc.). |
 | `NEWS_SAFE` | optional | `off` | Custom Search safe-search flag (`off`, `medium`, `high`). |
 | `NEWS_EXCLUDE_TERMS` | optional | JSON or comma list | Global headline/body phrases to drop (defaults filter out hiring, rumor, promo copy). |
 | `NEWS_NEGATIVE_SITE_EXCLUDES` | optional | JSON or comma list | Sites to exclude across every query (defaults remove job boards / ATS hosts). |
@@ -44,6 +45,7 @@ Refresh progress and the aggregated snapshot are persisted in the existing Upsta
 - **Client UI:** stores the last snapshot in local storage and only triggers a new fetch when the operator clicks the Refresh button. While a refresh job is running it polls the API on a timer, so the feed gradually fills without hammering the backend.
 - A full roster (≈700 firms) will take multiple minutes to process. Leave the tab open; each poll advances another batch and updates the displayed progress.
 - Use the **Export CSV** button in the news bar (or call `/api/news?format=csv`) to download the current snapshot including firm, headline, URL, source, timestamp, summary, and tags. The export reflects whatever data is cached at the moment you trigger it.
+- Use **Delete All** to clear the sidebar instantly; the next refresh will repopulate from the cached snapshot or Google once results arrive.
 
 ### API Response
 

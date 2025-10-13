@@ -74,6 +74,12 @@ function initNewsBar() {
         refreshButton.dataset.bound = 'true';
     }
 
+    const clearButton = $('news-clear');
+    if (clearButton && !clearButton.dataset.bound) {
+        clearButton.addEventListener('click', handleNewsClearAll);
+        clearButton.dataset.bound = 'true';
+    }
+
     const listEl = $('news-list');
     if (listEl && !listEl.dataset.actionsBound) {
         listEl.addEventListener('click', handleNewsListClick);
@@ -149,6 +155,29 @@ async function handleNewsExport() {
     }
 }
 
+function handleNewsClearAll() {
+    if (!state.newsItems.length) return;
+
+    const confirmed = window.confirm('Delete all headlines from the news feed?');
+    if (!confirmed) return;
+
+    state.dismissedNewsIds = new Set();
+    state.newsItems = [];
+    state.newsLastUpdated = null;
+    state.newsError = null;
+
+    persistNewsSnapshot({ items: [], lastUpdated: null });
+    if (typeof localStorage !== 'undefined') {
+        try {
+            localStorage.removeItem(NEWS_STORAGE_KEY);
+        } catch (error) {
+            console.warn('Failed to clear cached news snapshot:', error);
+        }
+    }
+
+    renderNewsBar();
+}
+
 function handleNewsRefresh() {
     cancelNewsAutoPoll();
     state.newsJobStatus = 'running';
@@ -196,6 +225,7 @@ function renderNewsBar() {
     const toggleButton = $('news-toggle');
     const refreshButton = $('news-refresh');
     const exportButton = $('news-export');
+    const clearButton = $('news-clear');
     const listEl = $('news-list');
     const countEl = $('news-count');
     const jobStatus = state.newsJobStatus;
@@ -239,6 +269,14 @@ function renderNewsBar() {
         exportButton.disabled = !!state.newsExporting;
         exportButton.textContent = state.newsExporting ? 'Exporting...' : 'Export CSV';
         exportButton.setAttribute('aria-busy', state.newsExporting ? 'true' : 'false');
+    }
+
+    if (clearButton) {
+        const isBusy = state.newsLoading || state.newsExporting;
+        const disableClear = isBusy || !state.newsItems.length;
+        clearButton.disabled = disableClear;
+        clearButton.textContent = 'Delete All';
+        clearButton.setAttribute('aria-busy', isBusy ? 'true' : 'false');
     }
 
     const visibleNews = getVisibleNews();

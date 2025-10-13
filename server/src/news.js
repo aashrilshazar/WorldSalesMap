@@ -5,6 +5,7 @@ import {
     GOOGLE_CSE_ID,
     NEWS_FETCH_BATCH_SIZE,
     NEWS_REFRESH_HOURS,
+    NEWS_LANGUAGE_RESTRICT,
     NEWS_RESULTS_PER_FIRM,
     NEWS_SEARCH_TEMPLATE
 } from './config.js';
@@ -138,6 +139,7 @@ async function fetchFirmNews(firmName) {
                 cx: GOOGLE_CSE_ID,
                 q: query,
                 dateRestrict: 'd1',
+                lr: NEWS_LANGUAGE_RESTRICT,
                 num
             })
         );

@@ -71,6 +71,10 @@ export const NEWS_SORT = process.env.NEWS_SORT || 'date';
 export const NEWS_GL = process.env.NEWS_GL || 'us';
 export const NEWS_HL = process.env.NEWS_HL || 'en';
 export const NEWS_SAFE = process.env.NEWS_SAFE || 'off';
+export const NEWS_LR =
+    process.env.NEWS_LR ||
+    process.env.NEWS_LANGUAGE_RESTRICT ||
+    'lang_en';
 const DEFAULT_EXCLUDE_TERMS = [
     "we're hiring",
     'we are hiring',
@@ -94,16 +98,62 @@ const DEFAULT_EXCLUDE_TERMS = [
     'letter of intent'
 ];
 const DEFAULT_NEGATIVE_SITE_EXCLUDES = [
-    'site:lever.co',
-    'site:jobs.lever.co',
-    'site:greenhouse.io',
-    'site:boards.greenhouse.io',
-    'site:myworkdayjobs.com',
-    'site:workdayjobs.com',
-    'site:jobs.sap.com',
-    'site:jazzhr.com',
-    'site:smartrecruiters.com',
-    'site:bamboohr.com'
+    // Social / UGC
+    'site:facebook.com',
+    'site:x.com',
+    'site:twitter.com',
+    'site:tiktok.com',
+    'site:linkedin.com',
+
+    // News mirrors / syndicators / finance portals (duplicate PRs & reprints)
+    'site:finance.yahoo.com',
+    'site:msn.com',
+    'site:aol.com',
+    'site:boerse-express.com',
+    'site:finanznachrichten.de',
+    'site:marketscreener.com',
+    'site:marketbeat.com',
+    'site:gurufocus.com',
+
+    // Jobs / ATS
+    'site:indeed.com',
+    'site:jooble.org',
+    'site:hellowork.com',
+    'site:glassdoor.com',
+    'site:grabjobs.co',
+    'site:jobleads.com',
+    'site:simplify.jobs',
+    'site:jobright.ai',
+    'site:tanitjobs.com',
+
+    // Directories / databases / link hubs
+    'site:tracxn.com',
+    'site:ceoexpress.com',
+    'site:clutch.co',
+    'site:crunchbase.com',
+    'site:spactrax.com',
+    'site:ecosystem.andorra-startup.com',
+
+    // Corporate registries (not news)
+    'site:pappers.fr',
+    'site:societe.com',
+
+    // Misc. low-signal & geo-noise seen in the CSV
+    'site:investorsinhealthcare.com',
+    'site:ecuavisa.com',
+    'site:gestiondefortune.com',
+    'site:immobilier.lefigaro.fr',
+    'site:legaleraonline.com',
+    'site:adgully.me',
+    'site:moneydj.com',
+    'site:noah-news.com',
+    'site:moneyexplored.com',
+
+    // Blogs / UGC clones
+    'site:blogspot.com',
+
+    // Unrelated verticals caught in the net
+    'site:mexc.com'
 ];
 export const NEWS_EXCLUDE_TERMS = parseListEnv('NEWS_EXCLUDE_TERMS', DEFAULT_EXCLUDE_TERMS);
 export const NEWS_NEGATIVE_SITE_EXCLUDES = parseListEnv(
