@@ -97,69 +97,148 @@ const DEFAULT_EXCLUDE_TERMS = [
     'rumored',
     'letter of intent'
 ];
-const DEFAULT_NEGATIVE_SITE_EXCLUDES = [
-    // Social / UGC
-    'site:facebook.com',
-    'site:x.com',
-    'site:twitter.com',
-    'site:tiktok.com',
-    'site:linkedin.com',
+const DEFAULT_ALLOWLIST_SITES = [
+    // PR wires (highest-signal)
+    'site:businesswire.com',
+    'site:globenewswire.com',
+    'site:prnewswire.com',
+    'site:newsdirect.com',
+    'site:accesswire.com',
+    'site:einpresswire.com',
 
-    // News mirrors / syndicators / finance portals (duplicate PRs & reprints)
-    'site:finance.yahoo.com',
-    'site:msn.com',
-    'site:aol.com',
-    'site:boerse-express.com',
-    'site:finanznachrichten.de',
-    'site:marketscreener.com',
-    'site:marketbeat.com',
-    'site:gurufocus.com',
+    // Core PE trades + tier-1 finance desks
+    'site:pehub.com',
+    'site:privateequityinternational.com',
+    'site:penews.com',
+    'site:thedeal.com',
+    'site:secondariesinvestor.com',
+    'site:privateequitywire.co.uk',
+    'site:reuters.com',
+    'site:bloomberg.com',
+    'site:ft.com',
+    'site:wsj.com',
+    'site:spglobal.com/marketintelligence',
 
-    // Jobs / ATS
-    'site:indeed.com',
-    'site:jooble.org',
-    'site:hellowork.com',
-    'site:glassdoor.com',
-    'site:grabjobs.co',
-    'site:jobleads.com',
-    'site:simplify.jobs',
-    'site:jobright.ai',
-    'site:tanitjobs.com',
+    // Additional global/regional PE trades
+    'site:avcj.com',
+    'site:unquote.com',
+    'site:realdeals.eu.com',
+    'site:altassets.net',
+    'site:pitchbook.com/news',
+    'site:infrastructureinvestor.com',
 
-    // Directories / databases / link hubs
-    'site:tracxn.com',
-    'site:ceoexpress.com',
-    'site:clutch.co',
-    'site:crunchbase.com',
-    'site:spactrax.com',
-    'site:ecosystem.andorra-startup.com',
+    // Executive moves / people news
+    'site:huntscanlon.com',
+    'site:institutionalinvestor.com',
 
-    // Corporate registries (not news)
-    'site:pappers.fr',
-    'site:societe.com',
+    // Law-firm press rooms
+    'site:kirkland.com',
+    'site:lathamwatkins.com',
+    'site:skadden.com',
+    'site:simpsonthacher.com',
+    'site:ropesgray.com',
+    'site:paulweiss.com',
+    'site:clearygottlieb.com',
+    'site:davispolk.com',
+    'site:friedfrank.com',
+    'site:debevoise.com',
+    'site:weil.com',
+    'site:sidley.com',
+    'site:gibsondunn.com',
+    'site:whitecase.com',
+    'site:sullcrom.com',
+    'site:cravath.com',
+    'site:proskauer.com',
+    'site:cooley.com',
+    'site:goodwinlaw.com',
+    'site:wilsonsonsini.com',
+    'site:aoshearman.com',
+    'site:linklaters.com',
+    'site:freshfields.com',
+    'site:cliffordchance.com',
+    'site:allenandovery.com',
+    'site:hoganlovells.com',
+    'site:herbertsmithfreehills.com',
+    'site:macfarlanes.com',
+    'site:traverssmith.com',
+    'site:cms.law',
+    'site:slaughterandmay.com',
+    'site:ashurst.com',
+    'site:milbank.com',
+    'site:jonesday.com',
+    'site:bakerbotts.com',
 
-    // Misc. low-signal & geo-noise seen in the CSV
-    'site:investorsinhealthcare.com',
-    'site:ecuavisa.com',
-    'site:gestiondefortune.com',
-    'site:immobilier.lefigaro.fr',
-    'site:legaleraonline.com',
-    'site:adgully.me',
-    'site:moneydj.com',
-    'site:noah-news.com',
-    'site:moneyexplored.com',
+    // Advisor press rooms (IB/FA completions)
+    'site:evercore.com',
+    'site:lazard.com',
+    'site:moelis.com',
+    'site:solomonpartners.com',
+    'site:jefferies.com',
+    'site:hl.com',
+    'site:lincolninternational.com',
+    'site:goldmansachs.com',
+    'site:morganstanley.com',
+    'site:jpmorgan.com',
+    'site:newsroom.bankofamerica.com',
+    'site:barclays.com',
+    'site:db.com',
+    'site:rbc.com',
+    'site:ubsgroup.com',
 
-    // Blogs / UGC clones
-    'site:blogspot.com',
+    // Global wires & mainstream business press
+    'site:apnews.com',
+    'site:cnbc.com',
+    'site:forbes.com',
+    'site:fortune.com',
+    'site:marketwatch.com',
+    'site:cityam.com',
+    'site:telegraph.co.uk/business',
+    'site:handelsblatt.com',
+    'site:ilsole24ore.com',
+    'site:nikkei.com',
+    'site:asia.nikkei.com',
+    'site:nikkeiasia.com',
+    'site:theinformation.com',
 
-    // Unrelated verticals caught in the net
-    'site:mexc.com'
+    // Private markets & asset-manager trades
+    'site:peprofessional.com',
+    'site:buyoutsinsider.com',
+    'site:realestatecapital.com',
+    'site:realassets.ipe.com',
+    'site:eqmagpro.com',
+    'site:fundfire.com',
+    'site:ignites.com',
+    'site:ipe.com',
+    'site:citywire.com',
+
+    // Portfolio / restructuring watching
+    'site:turnaround.org',
+    'site:mergersandinquisitions.com',
+    'site:globallegalchronicle.com',
+    'site:globaldata.com/store/report',
+
+    // Regional & sector specialists
+    'site:valor.globo.com',
+    'site:lesechos.fr',
+    'site:afr.com',
+    'site:business-standard.com',
+    'site:finextra.com',
+    'site:medcitynews.com',
+
+    // Regulators & exchanges (filings/approvals)
+    'site:sec.gov',
+    'site:finra.org',
+    'site:eba.europa.eu',
+    'site:mas.gov.sg',
+    'site:lseg.com',
+
+    // Corporate comms / IR (examples)
+    'site:ir.blackstone.com',
+    'site:ir.apollo.com',
+    'site:ir.kkr.com'
 ];
 export const NEWS_EXCLUDE_TERMS = parseListEnv('NEWS_EXCLUDE_TERMS', DEFAULT_EXCLUDE_TERMS);
-export const NEWS_NEGATIVE_SITE_EXCLUDES = parseListEnv(
-    'NEWS_NEGATIVE_SITE_EXCLUDES',
-    DEFAULT_NEGATIVE_SITE_EXCLUDES
-);
+export const NEWS_ALLOWLIST_SITES = parseListEnv('NEWS_ALLOWLIST_SITES', DEFAULT_ALLOWLIST_SITES);
 
 export const KV_REST_API_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || '';
 export const KV_REST_API_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || '';

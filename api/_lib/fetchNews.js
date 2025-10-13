@@ -17,7 +17,7 @@ import {
     NEWS_SORT,
     NEWS_DATE_RESTRICT,
     NEWS_EXCLUDE_TERMS,
-    NEWS_NEGATIVE_SITE_EXCLUDES
+    NEWS_ALLOWLIST_SITES
 } from './config.js';
 import {
     loadSnapshot,
@@ -33,16 +33,11 @@ const customSearch = google.customsearch('v1');
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_RESULTS_PER_QUERY = Math.min(10, Math.max(NEWS_FETCH_BATCH_SIZE, NEWS_RESULTS_PER_FIRM));
 const SIGNAL_PRIORITY = ['fund', 'deal', 'hire', 'promotion'];
-const NEGATIVE_SITE_SUFFIX = NEWS_NEGATIVE_SITE_EXCLUDES.length
-    ? ' ' +
-      NEWS_NEGATIVE_SITE_EXCLUDES.map(site => {
-          const trimmed = site.trim();
-          if (!trimmed) return '';
-          return trimmed.startsWith('-') ? trimmed : `-${trimmed}`;
-      })
-          .filter(Boolean)
-          .join(' ')
+const ALLOWLIST_TERMS = NEWS_ALLOWLIST_SITES.map(site => site.trim()).filter(Boolean);
+const ALLOWLIST_QUERY_SUFFIX = ALLOWLIST_TERMS.length
+    ? ' (' + ALLOWLIST_TERMS.join(' OR ') + ')'
     : '';
+const ALLOWLIST_DOMAINS = ALLOWLIST_TERMS.map(term => term.replace(/^site:/i, '').toLowerCase());
 const NEGATIVE_TERMS_VALUE = NEWS_EXCLUDE_TERMS.length
     ? NEWS_EXCLUDE_TERMS.map(term => `"${term}"`).join(' ')
     : '';
@@ -59,7 +54,7 @@ const MAX_ERROR_ENTRIES = 500;
 
 const NEWS_QUERY_BUILDERS = {
     fund: firm => ({
-        q: `"${firm}" ( "final close" OR "first close" OR "hard cap" OR "raises fund" OR "closes fund" OR "launches fund" )${NEGATIVE_SITE_SUFFIX}`,
+        q: `"${firm}" ( "final close" OR "first close" OR "hard cap" OR "raises fund" OR "closes fund" OR "launches fund" )${ALLOWLIST_QUERY_SUFFIX}`,
         exactTerms: firm,
         excludeTerms: NEGATIVE_TERMS_VALUE,
         num: MAX_RESULTS_PER_QUERY,
@@ -70,7 +65,7 @@ const NEWS_QUERY_BUILDERS = {
         safe: NEWS_SAFE
     }),
     deal: firm => ({
-        q: `"${firm}" ( acquires OR acquisition OR "closes acquisition" OR "to acquire" OR "take-private" OR merger OR backs OR "minority investment" OR "platform investment" OR "add-on acquisition" )${NEGATIVE_SITE_SUFFIX}`,
+        q: `"${firm}" ( acquires OR acquisition OR "closes acquisition" OR "to acquire" OR "take-private" OR merger OR backs OR "minority investment" OR "platform investment" OR "add-on acquisition" )${ALLOWLIST_QUERY_SUFFIX}`,
         exactTerms: firm,
         excludeTerms: NEGATIVE_TERMS_VALUE,
         num: MAX_RESULTS_PER_QUERY,
@@ -81,7 +76,7 @@ const NEWS_QUERY_BUILDERS = {
         safe: NEWS_SAFE
     }),
     hire: firm => ({
-        q: `"${firm}" ( hires OR appoints OR "named" OR "joins as" ) intitle:(hires OR appoints OR named)${NEGATIVE_SITE_SUFFIX}`,
+        q: `"${firm}" ( hires OR appoints OR "named" OR "joins as" ) intitle:(hires OR appoints OR named)${ALLOWLIST_QUERY_SUFFIX}`,
         exactTerms: firm,
         excludeTerms: NEGATIVE_TERMS_VALUE,
         num: MAX_RESULTS_PER_QUERY,
@@ -92,7 +87,7 @@ const NEWS_QUERY_BUILDERS = {
         safe: NEWS_SAFE
     }),
     promotion: firm => ({
-        q: `"${firm}" ( promotes OR promoted OR elevates OR "named managing director" OR "promoted to partner" ) intitle:(promotes OR promoted OR elevates)${NEGATIVE_SITE_SUFFIX}`,
+        q: `"${firm}" ( promotes OR promoted OR elevates OR "named managing director" OR "promoted to partner" ) intitle:(promotes OR promoted OR elevates)${ALLOWLIST_QUERY_SUFFIX}`,
         exactTerms: firm,
         excludeTerms: NEGATIVE_TERMS_VALUE,
         num: MAX_RESULTS_PER_QUERY,
@@ -103,6 +98,27 @@ const NEWS_QUERY_BUILDERS = {
         safe: NEWS_SAFE
     })
 };
+
+function isUrlAllowlisted(url, displayLink) {
+    if (!ALLOWLIST_DOMAINS.length) return true;
+
+    const candidates = [];
+    if (url) {
+        candidates.push(url.toLowerCase());
+        try {
+            candidates.push(new URL(url).host.toLowerCase());
+        } catch (error) {
+            // ignore invalid URL parsing
+        }
+    }
+    if (displayLink) {
+        candidates.push(String(displayLink).toLowerCase());
+    }
+
+    return ALLOWLIST_DOMAINS.some(domain =>
+        candidates.some(value => value && value.includes(domain))
+    );
+}
 
 function buildQuery(firmName) {
     return NEWS_SEARCH_TEMPLATE.replace(/<firm name>/gi, firmName);
@@ -190,6 +206,10 @@ function isRecent(date) {
 
 function normalizeSearchItem(item, firmName) {
     if (!item?.link) return null;
+
+    if (!isUrlAllowlisted(item.link, item.displayLink)) {
+        return null;
+    }
 
     const publishedAt = extractPublishedAt(item) || new Date();
     if (!isRecent(publishedAt)) {
@@ -490,7 +510,7 @@ function buildFirmSignalQueries(firmName) {
 }
 
 function buildFallbackQueryParams(firmName) {
-    const baseQuery = `${buildQuery(firmName)}${NEGATIVE_SITE_SUFFIX}`;
+    const baseQuery = `${buildQuery(firmName)}${ALLOWLIST_QUERY_SUFFIX}`;
     return {
         q: baseQuery,
         exactTerms: firmName,

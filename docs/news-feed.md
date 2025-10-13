@@ -26,7 +26,7 @@ Add these to `.env` (server) and your Vercel project:
 | `NEWS_LR` | optional | `lang_en` | Language restriction (`lang_en`, `lang_fr`, etc.). |
 | `NEWS_SAFE` | optional | `off` | Custom Search safe-search flag (`off`, `medium`, `high`). |
 | `NEWS_EXCLUDE_TERMS` | optional | JSON or comma list | Global headline/body phrases to drop (defaults filter out hiring, rumor, promo copy). |
-| `NEWS_NEGATIVE_SITE_EXCLUDES` | optional | JSON or comma list | Sites to exclude across every query (defaults remove job boards / ATS hosts). |
+| `NEWS_ALLOWLIST_SITES` | optional | JSON or comma list | Domains to include across every query (defaults target high-signal PR, trades, law firms, advisors, regulators). |
 | `NEWS_FIRMS_PER_BATCH` | optional | `15` | Number of firms processed per refresh invocation (controls pacing and quota usage). |
 | `NEWS_JOB_TTL_SECONDS` | optional | `86400` | How long to keep refresh job state in Upstash before it expires. |
 | `NEWS_SNAPSHOT_TTL_SECONDS` | optional | `86400` | TTL for the aggregated news snapshot stored in Upstash. |
