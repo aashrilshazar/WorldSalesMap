@@ -601,6 +601,24 @@ export async function cancelNewsJob() {
     return buildResponse(snapshot, jobState, 'cancelled');
 }
 
+export async function clearNewsData() {
+    await cancelNewsJob();
+
+    const jobState = await loadJobState();
+
+    const emptySnapshot = {
+        items: [],
+        lastUpdated: null,
+        errors: null,
+        jobStatus: 'idle'
+    };
+
+    await saveSnapshot(emptySnapshot, SNAPSHOT_TTL_SECONDS);
+
+    const status = jobState?.cancelRequested ? 'cancelled' : 'idle';
+    return buildResponse(emptySnapshot, jobState, status);
+}
+
 function buildFirmSignalQueries(firmName) {
     const entries = [];
     for (const signal of SIGNAL_PRIORITY) {

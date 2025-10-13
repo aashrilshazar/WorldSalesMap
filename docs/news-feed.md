@@ -45,9 +45,9 @@ Refresh progress and the aggregated snapshot are persisted in the existing Upsta
 - **Client UI:** stores the last snapshot in local storage and only triggers a new fetch when the operator clicks the Refresh button. While a refresh job is running it polls the API on a timer, so the feed gradually fills without hammering the backend.
 - A full roster (≈700 firms) will take multiple minutes to process. Leave the tab open; each poll advances another batch and updates the displayed progress.
 - Use the **Export CSV** button in the news bar (or call `/api/news?format=csv`) to download the current snapshot including firm, headline, URL, source, timestamp, summary, and tags. The export reflects whatever data is cached at the moment you trigger it.
-- Use **Delete All** to clear the sidebar instantly; the next refresh will repopulate from the cached snapshot or Google once results arrive.
+- Use **Delete All** to clear the sidebar instantly; this also wipes the cached snapshot via `/api/news?clear=1`, so subsequent refreshes start from scratch.
 - Use **Cancel Refresh** to stop an in-flight batch; the current job is marked cancelled and polling stops while preserving any articles already captured.
-- Call `/api/news?cancel=1` if you prefer to trigger cancellation via HTTP rather than the UI.
+- Call `/api/news?cancel=1` or `/api/news?clear=1` if you prefer to trigger those actions via HTTP rather than the UI.
 
 ### API Response
 
@@ -58,7 +58,7 @@ Refresh progress and the aggregated snapshot are persisted in the existing Upsta
 | `items` | Normalized articles (unchanged). |
 | `lastUpdated` | Timestamp of the most recent successful batch write. |
 | `errors` | Array of `{ firm, message, at }` for firms that failed in any batch. |
-| `status` | `'idle'`, `'running'`, `'complete'`, or `'error'` depending on job state. |
+| `status` | `'idle'`, `'running'`, `'complete'`, `'cancelled'`, or `'error'` depending on job state. |
 | `job` | Progress metadata (`id`, `totalFirms`, `processedFirms`, `percentComplete`, timestamps). |
 | `batch` | Present only on refresh requests; summarises the firms processed in the latest slice. |
 

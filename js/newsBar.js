@@ -3,6 +3,7 @@ const NEWS_LOADING_MESSAGE = 'Loading latest firm headlines...';
 const NEWS_ERROR_INITIAL = 'Unable to load news headlines. Try again soon.';
 const NEWS_ERROR_REFRESH = 'Unable to refresh news feed. Showing cached results.';
 const NEWS_ERROR_CANCEL = 'Unable to cancel refresh. Try again soon.';
+const NEWS_ERROR_CLEAR = 'Unable to clear news feed. Try again soon.';
 const NEWS_MIN_HEIGHT = 160;
 const NEWS_SAFE_HEADROOM = 120;
 const NEWS_REFRESH_POLL_MS = 8000;
@@ -162,27 +163,66 @@ async function handleNewsExport() {
     }
 }
 
-function handleNewsClearAll() {
-    if (!state.newsItems.length) return;
+async function handleNewsClearAll() {
+    if (state.newsClearing) return;
+    if (!state.newsItems.length && state.newsJobStatus !== 'running') return;
 
     const confirmed = window.confirm('Delete all headlines from the news feed?');
     if (!confirmed) return;
 
-    state.dismissedNewsIds = new Set();
-    state.newsItems = [];
-    state.newsLastUpdated = null;
+    cancelNewsAutoPoll();
+    state.newsClearing = true;
     state.newsError = null;
-
-    persistNewsSnapshot({ items: [], lastUpdated: null });
-    if (typeof localStorage !== 'undefined') {
-        try {
-            localStorage.removeItem(NEWS_STORAGE_KEY);
-        } catch (error) {
-            console.warn('Failed to clear cached news snapshot:', error);
-        }
-    }
-
     renderNewsBar();
+
+    try {
+        const response = await fetch(`${NEWS_ENDPOINT}?clear=1`, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`Request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        const items = Array.isArray(data.items) ? data.items : [];
+        const filtered = items.filter(item => item && !state.dismissedNewsIds.has(item.id));
+
+        const lastUpdated = data.lastUpdated || null;
+
+        state.newsItems = filtered;
+        state.newsLastUpdated = lastUpdated;
+        state.newsJobStatus = data.status || 'idle';
+        state.newsJob = data.job || null;
+        state.newsCanceling = false;
+
+        const errorCount = Array.isArray(data.errors) ? data.errors.length : 0;
+        if (errorCount > 0) {
+            const sampleFirms = data.errors
+                .map(entry => entry?.firm)
+                .filter(Boolean)
+                .slice(0, 3);
+            const sampleSuffix = sampleFirms.length
+                ? ` (${sampleFirms.join(', ')}${errorCount > sampleFirms.length ? '…' : ''})`
+                : '';
+            state.newsError = `${errorCount} firm${errorCount === 1 ? '' : 's'} failed during clear${sampleSuffix}`;
+        } else {
+            state.newsError = null;
+        }
+
+        state.dismissedNewsIds = new Set();
+
+        if (typeof localStorage !== 'undefined') {
+            try {
+                localStorage.removeItem(NEWS_STORAGE_KEY);
+            } catch (error) {
+                console.warn('Failed to clear cached news snapshot:', error);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to clear news feed', error);
+        state.newsError = NEWS_ERROR_CLEAR;
+    } finally {
+        state.newsClearing = false;
+        renderNewsBar();
+    }
 }
 
 function handleNewsRefresh() {
@@ -191,6 +231,7 @@ function handleNewsRefresh() {
     state.newsJob = null;
     state.newsError = null;
     state.newsCanceling = false;
+    state.newsClearing = false;
     loadNewsFromServer({ forceRefresh: true });
 }
 
@@ -327,23 +368,24 @@ function renderNewsBar() {
 
     if (exportButton) {
         const exporting = !!state.newsExporting;
-        const disabled = exporting || state.newsCanceling;
+        const disabled = exporting || state.newsCanceling || state.newsClearing;
         exportButton.disabled = disabled;
         exportButton.textContent = exporting ? 'Exporting...' : 'Export CSV';
         exportButton.setAttribute('aria-busy', exporting ? 'true' : 'false');
     }
 
     if (clearButton) {
-        const isBusy = state.newsLoading || state.newsExporting || state.newsCanceling;
+        const isBusy = state.newsLoading || state.newsExporting || state.newsCanceling || state.newsClearing;
         const disableClear = isBusy || !state.newsItems.length;
         clearButton.disabled = disableClear;
-        clearButton.textContent = 'Delete All';
-        clearButton.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+        clearButton.textContent = state.newsClearing ? 'Deleting...' : 'Delete All';
+        clearButton.setAttribute('aria-busy', state.newsClearing ? 'true' : 'false');
     }
 
     if (cancelButton) {
         const isRunning = state.newsJobStatus === 'running' || state.newsLoading;
-        cancelButton.disabled = !isRunning || state.newsCanceling;
+        const busy = state.newsCanceling || state.newsClearing;
+        cancelButton.disabled = !isRunning || busy;
         cancelButton.textContent = state.newsCanceling ? 'Cancelling...' : 'Cancel Refresh';
         cancelButton.setAttribute('aria-busy', state.newsCanceling ? 'true' : 'false');
     }

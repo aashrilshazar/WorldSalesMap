@@ -57,6 +57,7 @@ const state = {
     newsJob: null,
     newsExporting: false,
     newsCanceling: false,
+    newsClearing: false,
     dismissedNewsIds: new Set(),
     activeHighlightTimeout: null
 };
