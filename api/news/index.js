@@ -1,4 +1,4 @@
-import { fetchNews } from '../_lib/fetchNews.js';
+import { fetchNews, cancelNewsJob } from '../_lib/fetchNews.js';
 import { validateConfig } from '../_lib/config.js';
 
 export const config = {
@@ -14,9 +14,15 @@ export default async function handler(req, res) {
     try {
         validateConfig({ requireGmail: false, requireNews: true });
 
-        const { refresh, format } = req.query || {};
+        const { refresh, format, cancel } = req.query || {};
         const forceRefresh = refresh === '1' || refresh === 'true';
         const desiredFormat = typeof format === 'string' ? format.toLowerCase() : '';
+        const cancelRequested = cancel === '1' || cancel === 'true';
+
+        if (cancelRequested) {
+            const snapshot = await cancelNewsJob();
+            return res.status(200).json(snapshot);
+        }
 
         const snapshot = await fetchNews(forceRefresh);
         if (desiredFormat === 'csv') {

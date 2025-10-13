@@ -46,6 +46,8 @@ Refresh progress and the aggregated snapshot are persisted in the existing Upsta
 - A full roster (≈700 firms) will take multiple minutes to process. Leave the tab open; each poll advances another batch and updates the displayed progress.
 - Use the **Export CSV** button in the news bar (or call `/api/news?format=csv`) to download the current snapshot including firm, headline, URL, source, timestamp, summary, and tags. The export reflects whatever data is cached at the moment you trigger it.
 - Use **Delete All** to clear the sidebar instantly; the next refresh will repopulate from the cached snapshot or Google once results arrive.
+- Use **Cancel Refresh** to stop an in-flight batch; the current job is marked cancelled and polling stops while preserving any articles already captured.
+- Call `/api/news?cancel=1` if you prefer to trigger cancellation via HTTP rather than the UI.
 
 ### API Response
 

@@ -402,7 +402,8 @@ body {
 .news-bar__toggle,
 .news-bar__refresh,
 .news-bar__export,
-.news-bar__delete {
+.news-bar__delete,
+.news-bar__cancel {
     background: rgba(59,130,246,0.18);
     border: 1px solid rgba(59,130,246,0.35);
     border-radius: 6px;
@@ -416,7 +417,8 @@ body {
 .news-bar__toggle:hover,
 .news-bar__refresh:hover,
 .news-bar__export:hover,
-.news-bar__delete:hover {
+.news-bar__delete:hover,
+.news-bar__cancel:hover {
     background: rgba(59,130,246,0.28);
 }
 
@@ -431,6 +433,11 @@ body {
 }
 
 .news-bar__delete[disabled] {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.news-bar__cancel[disabled] {
     opacity: 0.6;
     cursor: wait;
 }

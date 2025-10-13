@@ -120,6 +120,14 @@ function isUrlAllowlisted(url, displayLink) {
     );
 }
 
+async function isCancellationRequested(jobId) {
+    if (!jobId) return false;
+    const state = await loadJobState();
+    if (!state) return false;
+    if (state.id !== jobId) return false;
+    return !!state.cancelRequested;
+}
+
 function buildQuery(firmName) {
     return NEWS_SEARCH_TEMPLATE.replace(/<firm name>/gi, firmName);
 }
@@ -267,11 +275,18 @@ async function fetchFirmNews(firmName) {
     return collected.slice(0, limit);
 }
 
-async function fetchBatchForFirms(firmNames) {
+async function fetchBatchForFirms(firmNames, jobId) {
     const allItems = [];
     const batchErrors = [];
+    let processed = 0;
+    let cancelled = false;
 
     for (const firmName of firmNames) {
+        if (await isCancellationRequested(jobId)) {
+            cancelled = true;
+            break;
+        }
+
         try {
             const items = await fetchFirmNews(firmName);
             allItems.push(...items);
@@ -283,9 +298,11 @@ async function fetchBatchForFirms(firmNames) {
                 at: new Date().toISOString()
             });
         }
+
+        processed += 1;
     }
 
-    return { items: allItems, errors: batchErrors };
+    return { items: allItems, errors: batchErrors, processed, cancelled };
 }
 
 function mergeSnapshotItems(existingItems = [], newItems = []) {
@@ -388,8 +405,14 @@ export async function fetchNews(forceRefresh = false) {
     let jobState = await loadJobState();
 
     if (!forceRefresh) {
-        const status =
-            jobState && jobState.completedAt ? 'complete' : jobState ? 'running' : 'idle';
+        let status = 'idle';
+        if (jobState?.cancelRequested) {
+            status = 'cancelled';
+        } else if (jobState?.completedAt) {
+            status = 'complete';
+        } else if (jobState) {
+            status = 'running';
+        }
         return buildResponse(snapshot || {}, jobState, status);
     }
 
@@ -400,6 +423,7 @@ export async function fetchNews(forceRefresh = false) {
     if (
         !jobState ||
         jobState.completedAt ||
+        jobState.cancelRequested ||
         jobState.nextIndex >= totalFirms ||
         !jobState.id
     ) {
@@ -412,7 +436,8 @@ export async function fetchNews(forceRefresh = false) {
             batchSize: FIRMS_PER_BATCH,
             startedAt: nowIso,
             lastBatchAt: null,
-            completedAt: null
+            completedAt: null,
+            cancelRequested: false
         };
         await saveJobState(jobState, JOB_STATE_TTL_SECONDS);
 
@@ -447,9 +472,29 @@ export async function fetchNews(forceRefresh = false) {
         return buildResponse(finalSnapshot, jobState, 'complete');
     }
 
-    const endIndex = Math.min(totalFirms, startIndex + FIRMS_PER_BATCH);
-    const firms = NEWS_FIRM_NAMES.slice(startIndex, endIndex);
-    const batchResult = await fetchBatchForFirms(firms);
+    if (await isCancellationRequested(jobState.id)) {
+        jobState.cancelRequested = true;
+        jobState.jobStatus = 'cancelled';
+        jobState.completedAt = jobState.completedAt || nowIso;
+        await saveJobState(jobState, JOB_STATE_TTL_SECONDS);
+
+        const cancelledSnapshot = (await loadSnapshot()) || {
+            items: baseItems,
+            lastUpdated: jobState.completedAt,
+            errors: baseErrors,
+            jobStatus: 'cancelled'
+        };
+        cancelledSnapshot.jobStatus = 'cancelled';
+        cancelledSnapshot.lastUpdated = cancelledSnapshot.lastUpdated || jobState.completedAt;
+        await saveSnapshot(cancelledSnapshot, SNAPSHOT_TTL_SECONDS);
+
+        await clearJobState();
+        return buildResponse(cancelledSnapshot, jobState, 'cancelled');
+    }
+
+    const plannedEndIndex = Math.min(totalFirms, startIndex + FIRMS_PER_BATCH);
+    const firms = NEWS_FIRM_NAMES.slice(startIndex, plannedEndIndex);
+    const batchResult = await fetchBatchForFirms(firms, jobState.id);
 
     const currentSnapshot = (await loadSnapshot()) || {
         items: baseItems,
@@ -460,23 +505,54 @@ export async function fetchNews(forceRefresh = false) {
     const existingIds = new Set((Array.isArray(currentSnapshot.items) ? currentSnapshot.items : []).map(item => item.id).filter(Boolean));
     const mergedItems = mergeSnapshotItems(currentSnapshot.items, batchResult.items);
     const mergedErrors = mergeErrors(currentSnapshot.errors, batchResult.errors);
+    const processedCount = batchResult.processed || 0;
+    const processedFirms =
+        processedCount >= firms.length ? firms : firms.slice(0, processedCount);
     const updatedSnapshot = {
         ...currentSnapshot,
         items: mergedItems,
         errors: mergedErrors,
         lastUpdated: nowIso,
         jobId: jobState.id,
-        jobStatus: endIndex >= totalFirms ? 'complete' : 'running'
+        jobStatus: 'running'
     };
 
     await saveSnapshot(updatedSnapshot, SNAPSHOT_TTL_SECONDS);
 
-    jobState.nextIndex = endIndex;
-    jobState.processed = endIndex;
+    const nextIndex = startIndex + processedCount;
+
+    jobState.nextIndex = nextIndex;
+    jobState.processed = nextIndex;
     jobState.batchSize = FIRMS_PER_BATCH;
     jobState.lastBatchAt = nowIso;
 
-    if (endIndex >= totalFirms) {
+    let status = 'running';
+
+    if (batchResult.cancelled || (await isCancellationRequested(jobState.id))) {
+        status = 'cancelled';
+        jobState.cancelRequested = true;
+        jobState.jobStatus = 'cancelled';
+        jobState.completedAt = jobState.completedAt || nowIso;
+        updatedSnapshot.jobStatus = 'cancelled';
+        await saveSnapshot(updatedSnapshot, SNAPSHOT_TTL_SECONDS);
+        await saveJobState(jobState, JOB_STATE_TTL_SECONDS);
+        await clearJobState();
+
+        const newItemIds = batchResult.items
+            .map(item => item?.id)
+            .filter(id => id && !existingIds.has(id));
+        const batchMeta = {
+            firms: processedFirms,
+            newItems: newItemIds,
+            errors: batchResult.errors,
+            range: { start: startIndex, end: nextIndex },
+            cancelled: true
+        };
+
+        return buildResponse(updatedSnapshot, jobState, status, batchMeta);
+    }
+
+    if (nextIndex >= totalFirms) {
         jobState.completedAt = nowIso;
         updatedSnapshot.jobStatus = 'complete';
         updatedSnapshot.lastUpdated = nowIso;
@@ -485,18 +561,44 @@ export async function fetchNews(forceRefresh = false) {
 
     await saveJobState(jobState, JOB_STATE_TTL_SECONDS);
 
-    const status = jobState.completedAt ? 'complete' : 'running';
+    status = jobState.completedAt ? 'complete' : 'running';
     const newItemIds = batchResult.items
         .map(item => item?.id)
         .filter(id => id && !existingIds.has(id));
     const batchMeta = {
-        firms,
+        firms: processedFirms,
         newItems: newItemIds,
         errors: batchResult.errors,
-        range: { start: startIndex, end: endIndex }
+        range: { start: startIndex, end: nextIndex }
     };
 
     return buildResponse(updatedSnapshot, jobState, status, batchMeta);
+}
+
+export async function cancelNewsJob() {
+    const nowIso = new Date().toISOString();
+    const snapshot = (await loadSnapshot()) || {
+        items: [],
+        lastUpdated: null,
+        errors: null
+    };
+
+    let jobState = await loadJobState();
+
+    if (jobState) {
+        if (!jobState.cancelRequested) {
+            jobState.cancelRequested = true;
+        }
+        jobState.jobStatus = 'cancelled';
+        jobState.completedAt = jobState.completedAt || nowIso;
+        await saveJobState(jobState, JOB_STATE_TTL_SECONDS);
+    }
+
+    snapshot.jobStatus = 'cancelled';
+    snapshot.lastUpdated = snapshot.lastUpdated || nowIso;
+    await saveSnapshot(snapshot, SNAPSHOT_TTL_SECONDS);
+
+    return buildResponse(snapshot, jobState, 'cancelled');
 }
 
 function buildFirmSignalQueries(firmName) {

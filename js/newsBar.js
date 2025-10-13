@@ -2,6 +2,7 @@ const NEWS_ENDPOINT = '/api/news';
 const NEWS_LOADING_MESSAGE = 'Loading latest firm headlines...';
 const NEWS_ERROR_INITIAL = 'Unable to load news headlines. Try again soon.';
 const NEWS_ERROR_REFRESH = 'Unable to refresh news feed. Showing cached results.';
+const NEWS_ERROR_CANCEL = 'Unable to cancel refresh. Try again soon.';
 const NEWS_MIN_HEIGHT = 160;
 const NEWS_SAFE_HEADROOM = 120;
 const NEWS_REFRESH_POLL_MS = 8000;
@@ -78,6 +79,12 @@ function initNewsBar() {
     if (clearButton && !clearButton.dataset.bound) {
         clearButton.addEventListener('click', handleNewsClearAll);
         clearButton.dataset.bound = 'true';
+    }
+
+    const cancelButton = $('news-cancel');
+    if (cancelButton && !cancelButton.dataset.bound) {
+        cancelButton.addEventListener('click', handleNewsCancel);
+        cancelButton.dataset.bound = 'true';
     }
 
     const listEl = $('news-list');
@@ -183,7 +190,59 @@ function handleNewsRefresh() {
     state.newsJobStatus = 'running';
     state.newsJob = null;
     state.newsError = null;
+    state.newsCanceling = false;
     loadNewsFromServer({ forceRefresh: true });
+}
+
+async function handleNewsCancel() {
+    if (state.newsCanceling) return;
+
+    cancelNewsAutoPoll();
+    state.newsCanceling = true;
+    renderNewsBar();
+
+    try {
+        const response = await fetch(`${NEWS_ENDPOINT}?cancel=1`, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`Request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        const items = Array.isArray(data.items) ? data.items : [];
+        const filtered = items.filter(item => item && !state.dismissedNewsIds.has(item.id));
+
+        const lastUpdated = data.lastUpdated || state.newsLastUpdated || new Date().toISOString();
+
+        state.newsItems = filtered;
+        state.newsLastUpdated = lastUpdated;
+        state.newsJobStatus = data.status || 'cancelled';
+        state.newsJob = data.job || null;
+
+        const errorCount = Array.isArray(data.errors) ? data.errors.length : 0;
+        if (errorCount > 0) {
+            const sampleFirms = data.errors
+                .map(entry => entry?.firm)
+                .filter(Boolean)
+                .slice(0, 3);
+            const sampleSuffix = sampleFirms.length
+                ? ` (${sampleFirms.join(', ')}${errorCount > sampleFirms.length ? '…' : ''})`
+                : '';
+            state.newsError = `${errorCount} firm${errorCount === 1 ? '' : 's'} failed to refresh${sampleSuffix}`;
+        } else {
+            state.newsError = null;
+        }
+
+        persistNewsSnapshot({
+            items: filtered,
+            lastUpdated
+        });
+    } catch (error) {
+        console.error('Failed to cancel news refresh', error);
+        state.newsError = NEWS_ERROR_CANCEL;
+    } finally {
+        state.newsCanceling = false;
+        renderNewsBar();
+    }
 }
 
 function handleNewsListClick(event) {
@@ -226,6 +285,7 @@ function renderNewsBar() {
     const refreshButton = $('news-refresh');
     const exportButton = $('news-export');
     const clearButton = $('news-clear');
+    const cancelButton = $('news-cancel');
     const listEl = $('news-list');
     const countEl = $('news-count');
     const jobStatus = state.newsJobStatus;
@@ -266,17 +326,26 @@ function renderNewsBar() {
     }
 
     if (exportButton) {
-        exportButton.disabled = !!state.newsExporting;
-        exportButton.textContent = state.newsExporting ? 'Exporting...' : 'Export CSV';
-        exportButton.setAttribute('aria-busy', state.newsExporting ? 'true' : 'false');
+        const exporting = !!state.newsExporting;
+        const disabled = exporting || state.newsCanceling;
+        exportButton.disabled = disabled;
+        exportButton.textContent = exporting ? 'Exporting...' : 'Export CSV';
+        exportButton.setAttribute('aria-busy', exporting ? 'true' : 'false');
     }
 
     if (clearButton) {
-        const isBusy = state.newsLoading || state.newsExporting;
+        const isBusy = state.newsLoading || state.newsExporting || state.newsCanceling;
         const disableClear = isBusy || !state.newsItems.length;
         clearButton.disabled = disableClear;
         clearButton.textContent = 'Delete All';
         clearButton.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+    }
+
+    if (cancelButton) {
+        const isRunning = state.newsJobStatus === 'running' || state.newsLoading;
+        cancelButton.disabled = !isRunning || state.newsCanceling;
+        cancelButton.textContent = state.newsCanceling ? 'Cancelling...' : 'Cancel Refresh';
+        cancelButton.setAttribute('aria-busy', state.newsCanceling ? 'true' : 'false');
     }
 
     const visibleNews = getVisibleNews();
@@ -303,6 +372,8 @@ function renderNewsBar() {
             ) {
                 label += ` (${jobInfo.processedFirms}/${jobInfo.totalFirms})`;
             }
+        } else if (jobStatus === 'cancelled') {
+            label += ' • refresh cancelled';
         } else if (state.newsLastUpdated) {
             const updated = formatRelativeTime(state.newsLastUpdated);
             if (updated) {
@@ -336,6 +407,8 @@ function renderNewsBar() {
                     ? ` (${jobInfo.percentComplete}% complete)`
                     : '';
             message = `Fetching new headlines${percentLabel}. Leave this tab open to continue.`;
+        } else if (jobStatus === 'cancelled') {
+            message = 'Refresh cancelled. Click Refresh to start again when ready.';
         } else if (jobStatus === 'error') {
             message = 'Refresh failed. Try again or check the console for details.';
         } else {
@@ -463,6 +536,10 @@ function loadNewsFromServer({ forceRefresh = false } = {}) {
                 state.newsJob = null;
             }
 
+            if (state.newsJobStatus !== 'running') {
+                state.newsCanceling = false;
+            }
+
             const errorCount = Array.isArray(data.errors) ? data.errors.length : 0;
             if (errorCount > 0) {
                 const sampleFirms = data.errors
@@ -497,9 +574,12 @@ function loadNewsFromServer({ forceRefresh = false } = {}) {
                 previousItems.length || previousError
                     ? NEWS_ERROR_REFRESH
                     : NEWS_ERROR_INITIAL;
-            state.newsJobStatus = state.newsJobStatus === 'running' ? 'running' : 'error';
-            if (forceRefresh || state.newsJobStatus === 'running') {
+            state.newsJobStatus = state.newsJobStatus === 'running' ? 'error' : state.newsJobStatus;
+            state.newsCanceling = false;
+            if (state.newsJobStatus === 'running') {
                 scheduleNewsAutoPoll();
+            } else {
+                cancelNewsAutoPoll();
             }
         }
     })()

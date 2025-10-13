@@ -56,6 +56,7 @@ const state = {
     newsJobStatus: 'idle',
     newsJob: null,
     newsExporting: false,
+    newsCanceling: false,
     dismissedNewsIds: new Set(),
     activeHighlightTimeout: null
 };
