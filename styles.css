@@ -772,6 +772,7 @@ canvas, #map-container svg {
 }
 
 .map-bubble.highlighted {
+    fill: #60a5fa !important;
     animation: map-bubble-pulse 1.2s ease-in-out infinite;
     transform-box: fill-box;
     transform-origin: center;
@@ -818,12 +819,6 @@ canvas:active, #map-container svg:active {
     text-anchor: middle;
     opacity: 0;
     transition: opacity 0.2s;
-}
-
-.map-bubble-label--news {
-    opacity: 0.95;
-    fill: #fdf4ff;
-    font-weight: 600;
 }
 
 .map-bubble-group:hover .map-bubble-label {

@@ -12,13 +12,6 @@ const WORLD_SPHERE = { type: 'Sphere' };
 const US_FOCUS_LON_RANGE = [-170, -50];
 const US_FOCUS_LAT_RANGE = [15, 75];
 const COUNTY_DISPLAY_ZOOM = 1.5;
-const NEWS_HIGHLIGHT_COLOR = '#c026d3';
-const NEWS_HIGHLIGHT_STROKE = '#f5d0fe';
-const NEWS_HIGHLIGHT_STROKE_HOVER = '#fae8ff';
-const NEWS_HIGHLIGHT_STROKE_HIGHLIGHT = '#fdf4ff';
-const NEWS_HIGHLIGHT_GLOW =
-    'drop-shadow(0 0 12px rgba(192,38,211,0.85)) drop-shadow(0 0 6px rgba(192,38,211,0.6))';
-const DEFAULT_BUBBLE_STROKE = 'rgba(255,255,255,0.2)';
 
 function hexToRgb(hex) {
     if (typeof hex !== 'string') return null;
@@ -73,78 +66,6 @@ function getStageHoverColor(stage) {
 
 function getStageHighlightColor(stage) {
     return adjustColor(getStageBaseColor(stage), 0.32);
-}
-
-function ensureNewsHighlightSet() {
-    if (!(state.newsHighlightedFirmIds instanceof Set)) {
-        state.newsHighlightedFirmIds = new Set();
-    }
-    return state.newsHighlightedFirmIds;
-}
-
-function isFirmNewsHighlighted(firmId) {
-    if (!firmId) return false;
-    return ensureNewsHighlightSet().has(firmId);
-}
-
-function getBubbleBaseColor(datum) {
-    return isFirmNewsHighlighted(datum?.id)
-        ? NEWS_HIGHLIGHT_COLOR
-        : getStageBaseColor(datum?.stage);
-}
-
-function getBubbleHoverColor(datum) {
-    return isFirmNewsHighlighted(datum?.id)
-        ? adjustColor(NEWS_HIGHLIGHT_COLOR, 0.18)
-        : getStageHoverColor(datum?.stage);
-}
-
-function getBubbleHighlightColor(datum) {
-    return isFirmNewsHighlighted(datum?.id)
-        ? adjustColor(NEWS_HIGHLIGHT_COLOR, 0.32)
-        : getStageHighlightColor(datum?.stage);
-}
-
-function getBubbleStroke(datum, mode = 'base') {
-    if (isFirmNewsHighlighted(datum?.id)) {
-        if (mode === 'highlight') return NEWS_HIGHLIGHT_STROKE_HIGHLIGHT;
-        if (mode === 'hover') return NEWS_HIGHLIGHT_STROKE_HOVER;
-        return NEWS_HIGHLIGHT_STROKE;
-    }
-    if (mode === 'highlight') return 'rgba(255,255,255,0.35)';
-    if (mode === 'hover') return 'rgba(255,255,255,0.28)';
-    return DEFAULT_BUBBLE_STROKE;
-}
-
-function getBubbleStrokeWidth(datum, mode = 'base') {
-    if (isFirmNewsHighlighted(datum?.id)) {
-        if (mode === 'highlight') return 1.6;
-        if (mode === 'hover') return 1.4;
-        return 1.2;
-    }
-    if (mode === 'highlight') return 0.8;
-    if (mode === 'hover') return 0.7;
-    return 0.5;
-}
-
-function getBubbleFilter(datum) {
-    return isFirmNewsHighlighted(datum?.id) ? NEWS_HIGHLIGHT_GLOW : null;
-}
-
-function applyBubbleStyle(node, datum, mode = 'base') {
-    if (!node) return;
-    const data = datum || d3.select(node).datum();
-    if (!data) return;
-    const selection = d3.select(node);
-    selection
-        .style('fill', mode === 'highlight'
-            ? getBubbleHighlightColor(data)
-            : mode === 'hover'
-                ? getBubbleHoverColor(data)
-                : getBubbleBaseColor(data))
-        .style('stroke', getBubbleStroke(data, mode))
-        .style('stroke-width', getBubbleStrokeWidth(data, mode))
-        .style('filter', getBubbleFilter(data) || null);
 }
 
 function prepareMapBubbleLayout() {
@@ -377,17 +298,13 @@ function updateMapBubbles() {
 
     const merged = groupsEnter.merge(groups);
 
-    merged
-        .attr('data-firm-id', d => d.id)
-        .classed('map-bubble-group--news', d => isFirmNewsHighlighted(d.id));
+    merged.attr('data-firm-id', d => d.id);
 
     merged.select('.map-bubble')
         .attr('r', d => d.radius)
         .attr('cx', d => d.projected[0])
         .attr('cy', d => d.projected[1])
-        .each(function(d) {
-            applyBubbleStyle(this, d, 'base');
-        })
+        .style('fill', d => getStageBaseColor(d.stage))
         .on('click', (event, d) => {
             event.stopPropagation();
             const firmData = d.firm || d;
@@ -398,15 +315,18 @@ function updateMapBubbles() {
             }
         })
         .on('mouseover', function(event, d) {
-            const bubble = d3.select(this);
+            const highlightColor = getStageHighlightColor(d.stage);
+            const hoverColor = getStageHoverColor(d.stage);
             if (state.activeFirmId === d.id) {
-                bubble.interrupt('highlight');
-                applyBubbleStyle(this, d, 'highlight');
+                d3.select(this)
+                    .interrupt('highlight')
+                    .style('fill', highlightColor);
             } else {
-                bubble.transition()
+                d3.select(this)
+                    .transition()
                     .duration(200)
-                    .attr('r', Math.max(d.radius * 1.25, MAP_BUBBLE_MIN_RADIUS * 1.5));
-                applyBubbleStyle(this, d, 'hover');
+                    .attr('r', Math.max(d.radius * 1.25, MAP_BUBBLE_MIN_RADIUS * 1.5))
+                    .style('fill', hoverColor);
             }
 
             const content = `<strong>${d.name}</strong><br>
@@ -416,20 +336,30 @@ function updateMapBubbles() {
             showTooltip(event, content);
         })
         .on('mouseout', function(event, d) {
-            const bubble = d3.select(this);
+            const baseColor = getStageBaseColor(d.stage);
+            const highlightColor = getStageHighlightColor(d.stage);
             if (state.activeFirmId === d.id) {
-                bubble.interrupt('highlight');
-                applyBubbleStyle(this, d, 'highlight');
+                d3.select(this)
+                    .interrupt('highlight')
+                    .style('fill', highlightColor);
             } else {
-                bubble.transition()
+                d3.select(this)
+                    .transition()
                     .duration(200)
-                    .attr('r', d.radius);
-                applyBubbleStyle(this, d, 'base');
+                    .attr('r', d.radius)
+                    .style('fill', baseColor);
             }
             hideTooltip();
         });
 
+<<<<<<< ours
     merged.select('.map-bubble-label').remove();
+=======
+    merged.select('.map-bubble-label')
+        .attr('x', d => d.projected[0])
+        .attr('y', d => d.projected[1] + d.radius + 8)
+        .text(d => d.name);
+>>>>>>> theirs
 
     groups.exit().remove();
 
@@ -691,14 +621,10 @@ function animateBubbleRadius(bubbleNode, radius, ease = d3.easeCubicOut) {
 
 function resetBubbleAppearance(bubbleNode, { smooth = true } = {}) {
     if (!bubbleNode) return;
-    const datum = d3.select(bubbleNode).datum();
     const originalRadius = bubbleNode.dataset.originalRadius
         ? Number(bubbleNode.dataset.originalRadius)
         : Number(bubbleNode.getAttribute('r'));
     if (Number.isNaN(originalRadius)) return;
-
-    applyBubbleStyle(bubbleNode, datum, 'base');
-    bubbleNode.classList.remove('highlighted');
 
     if (smooth) {
         d3.select(bubbleNode)
@@ -714,6 +640,10 @@ function resetBubbleAppearance(bubbleNode, { smooth = true } = {}) {
         bubbleNode.setAttribute('r', originalRadius);
         delete bubbleNode.dataset.originalRadius;
     }
+
+    const datum = d3.select(bubbleNode).datum();
+    bubbleNode.style.fill = getStageBaseColor(datum?.stage);
+    bubbleNode.classList.remove('highlighted');
 }
 
 function applyHighlightToBubble(bubbleNode, { smooth = true } = {}) {
@@ -734,7 +664,7 @@ function applyHighlightToBubble(bubbleNode, { smooth = true } = {}) {
     }
 
     const datum = d3.select(bubbleNode).datum();
-    applyBubbleStyle(bubbleNode, datum, 'highlight');
+    bubbleNode.style.fill = getStageHighlightColor(datum?.stage);
     bubbleNode.classList.add('highlighted');
 }
 
@@ -790,26 +720,6 @@ function restoreActiveBubbleHighlight() {
     applyHighlightToBubble(bubbleNode, { smooth: false });
 }
 
-function setsEqual(a, b) {
-    if (!(a instanceof Set) || !(b instanceof Set)) return false;
-    if (a.size !== b.size) return false;
-    for (const value of a) {
-        if (!b.has(value)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function setNewsHighlightedFirms(firmIds) {
-    const incoming = Array.isArray(firmIds) ? firmIds.filter(Boolean) : [];
-    const nextSet = new Set(incoming);
-    const current = ensureNewsHighlightSet();
-    if (setsEqual(current, nextSet)) return;
-    state.newsHighlightedFirmIds = nextSet;
-    scheduleGlobeRender();
-}
-
 function focusFirmOnMap(firm, options = {}) {
     if (!firm) return;
     const {
@@ -851,4 +761,3 @@ window.scheduleGlobeRender = scheduleGlobeRender;
 window.focusFirmOnMap = focusFirmOnMap;
 window.resetGlobeOrientation = resetGlobeOrientation;
 window.zoomToLocation = zoomToLocation;
-window.setNewsHighlightedFirms = setNewsHighlightedFirms;
