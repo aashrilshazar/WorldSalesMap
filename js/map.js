@@ -375,9 +375,6 @@ function updateMapBubbles() {
     groupsEnter.append('circle')
         .attr('class', 'map-bubble');
 
-    groupsEnter.append('text')
-        .attr('class', 'map-bubble-label');
-
     const merged = groupsEnter.merge(groups);
 
     merged
@@ -432,11 +429,7 @@ function updateMapBubbles() {
             hideTooltip();
         });
 
-    merged.select('.map-bubble-label')
-        .attr('x', d => d.projected[0])
-        .attr('y', d => d.projected[1] + d.radius + 8)
-        .text(d => d.name)
-        .classed('map-bubble-label--news', d => isFirmNewsHighlighted(d.id));
+    merged.select('.map-bubble-label').remove();
 
     groups.exit().remove();
 
