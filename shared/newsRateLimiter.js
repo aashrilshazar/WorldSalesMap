@@ -1,4 +1,4 @@
-const DEFAULT_INTERVAL_MS = Number(process.env.NEWS_REQUEST_INTERVAL_MS || 3000);
+const DEFAULT_INTERVAL_MS = Number(process.env.NEWS_REQUEST_INTERVAL_MS || 500);
 const DEFAULT_MAX_RETRIES = Number(process.env.NEWS_REQUEST_MAX_RETRIES || 3);
 const DEFAULT_BACKOFF_MS = Number(process.env.NEWS_REQUEST_BACKOFF_MS || 15000);
 const DEFAULT_JITTER_MS = Number(process.env.NEWS_REQUEST_JITTER_MS || 250);

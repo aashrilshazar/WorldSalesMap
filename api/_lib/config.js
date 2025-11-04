@@ -62,10 +62,13 @@ export const NEWS_SEARCH_TEMPLATE =
     '"<firm name>" ("fund" OR "funds" OR "raises" OR "closed" OR "deal" OR "acquisition" OR "promotes" OR "hire" OR "joins")';
 export const NEWS_RESULTS_PER_FIRM = Number(process.env.NEWS_RESULTS_PER_FIRM || 3);
 export const NEWS_FETCH_BATCH_SIZE = Number(process.env.NEWS_FETCH_BATCH_SIZE || 10);
-export const NEWS_FIRMS_PER_BATCH = Number(process.env.NEWS_FIRMS_PER_BATCH || 15);
+export const NEWS_FIRMS_PER_BATCH = Number(process.env.NEWS_FIRMS_PER_BATCH || 10);
 export const NEWS_JOB_TTL_SECONDS = Number(process.env.NEWS_JOB_TTL_SECONDS || 24 * 60 * 60);
 export const NEWS_SNAPSHOT_TTL_SECONDS =
     Number(process.env.NEWS_SNAPSHOT_TTL_SECONDS || 24 * 60 * 60) || 24 * 60 * 60;
+export const NEWS_REFRESH_COOLDOWN_SECONDS = Number(
+    process.env.NEWS_REFRESH_COOLDOWN_SECONDS || 12 * 60 * 60
+);
 export const NEWS_DATE_RESTRICT = process.env.NEWS_DATE_RESTRICT || 'd1';
 export const NEWS_SORT = process.env.NEWS_SORT || 'date';
 export const NEWS_GL = process.env.NEWS_GL || 'us';

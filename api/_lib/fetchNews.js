@@ -17,7 +17,8 @@ import {
     NEWS_SORT,
     NEWS_DATE_RESTRICT,
     NEWS_EXCLUDE_TERMS,
-    NEWS_ALLOWLIST_SITES
+    NEWS_ALLOWLIST_SITES,
+    NEWS_REFRESH_COOLDOWN_SECONDS
 } from './config.js';
 import {
     loadSnapshot,
@@ -32,7 +33,68 @@ import { withNewsRateLimit } from '../../shared/newsRateLimiter.js';
 const customSearch = google.customsearch('v1');
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_RESULTS_PER_QUERY = Math.min(10, Math.max(NEWS_FETCH_BATCH_SIZE, NEWS_RESULTS_PER_FIRM));
-const SIGNAL_PRIORITY = ['fund', 'deal', 'hire', 'promotion'];
+const SIGNAL_KEYWORDS = {
+    fund: [
+        'fund',
+        'funds',
+        'funding',
+        'raise',
+        'raises',
+        'raised',
+        'raising',
+        'fundraise',
+        'fundraising',
+        'close',
+        'closes',
+        'closed',
+        'closing',
+        'capital raise'
+    ],
+    deal: [
+        'acquire',
+        'acquires',
+        'acquired',
+        'acquisition',
+        'deal',
+        'merger',
+        'merges',
+        'merging',
+        'investment',
+        'invests',
+        'invested',
+        'backs',
+        'take-private',
+        'buyout'
+    ],
+    hire: [
+        'hire',
+        'hires',
+        'hired',
+        'hiring',
+        'appoints',
+        'appointed',
+        'appointing',
+        'joins',
+        'join',
+        'joining',
+        'named',
+        'recruits',
+        'recruited'
+    ],
+    promotion: [
+        'promote',
+        'promotes',
+        'promoted',
+        'promotion',
+        'promotions',
+        'elevates',
+        'elevated',
+        'elevating',
+        'named managing director',
+        'named partner',
+        'promoted to'
+    ]
+};
 const ALLOWLIST_TERMS = NEWS_ALLOWLIST_SITES.map(site => site.trim()).filter(Boolean);
 const ALLOWLIST_QUERY_SUFFIX = ALLOWLIST_TERMS.length
     ? ' (' + ALLOWLIST_TERMS.join(' OR ') + ')'
@@ -51,53 +113,12 @@ const JOB_STATE_TTL_SECONDS = Math.max(
     Number.isFinite(NEWS_JOB_TTL_SECONDS) ? NEWS_JOB_TTL_SECONDS : 24 * 60 * 60
 );
 const MAX_ERROR_ENTRIES = 500;
-
-const NEWS_QUERY_BUILDERS = {
-    fund: firm => ({
-        q: `"${firm}" ( "final close" OR "first close" OR "hard cap" OR "raises fund" OR "closes fund" OR "launches fund" )${ALLOWLIST_QUERY_SUFFIX}`,
-        exactTerms: firm,
-        excludeTerms: NEGATIVE_TERMS_VALUE,
-        num: MAX_RESULTS_PER_QUERY,
-        dateRestrict: NEWS_DATE_RESTRICT,
-        sort: NEWS_SORT,
-        gl: NEWS_GL,
-        hl: NEWS_HL,
-        safe: NEWS_SAFE
-    }),
-    deal: firm => ({
-        q: `"${firm}" ( acquires OR acquisition OR "closes acquisition" OR "to acquire" OR "take-private" OR merger OR backs OR "minority investment" OR "platform investment" OR "add-on acquisition" )${ALLOWLIST_QUERY_SUFFIX}`,
-        exactTerms: firm,
-        excludeTerms: NEGATIVE_TERMS_VALUE,
-        num: MAX_RESULTS_PER_QUERY,
-        dateRestrict: NEWS_DATE_RESTRICT,
-        sort: NEWS_SORT,
-        gl: NEWS_GL,
-        hl: NEWS_HL,
-        safe: NEWS_SAFE
-    }),
-    hire: firm => ({
-        q: `"${firm}" ( hires OR appoints OR "named" OR "joins as" ) intitle:(hires OR appoints OR named)${ALLOWLIST_QUERY_SUFFIX}`,
-        exactTerms: firm,
-        excludeTerms: NEGATIVE_TERMS_VALUE,
-        num: MAX_RESULTS_PER_QUERY,
-        dateRestrict: NEWS_DATE_RESTRICT,
-        sort: NEWS_SORT,
-        gl: NEWS_GL,
-        hl: NEWS_HL,
-        safe: NEWS_SAFE
-    }),
-    promotion: firm => ({
-        q: `"${firm}" ( promotes OR promoted OR elevates OR "named managing director" OR "promoted to partner" ) intitle:(promotes OR promoted OR elevates)${ALLOWLIST_QUERY_SUFFIX}`,
-        exactTerms: firm,
-        excludeTerms: NEGATIVE_TERMS_VALUE,
-        num: MAX_RESULTS_PER_QUERY,
-        dateRestrict: NEWS_DATE_RESTRICT,
-        sort: NEWS_SORT,
-        gl: NEWS_GL,
-        hl: NEWS_HL,
-        safe: NEWS_SAFE
-    })
-};
+const REFRESH_COOLDOWN_MS = Math.max(
+    0,
+    Number.isFinite(NEWS_REFRESH_COOLDOWN_SECONDS)
+        ? NEWS_REFRESH_COOLDOWN_SECONDS * 1000
+        : 0
+);
 
 function isUrlAllowlisted(url, displayLink) {
     if (!ALLOWLIST_DOMAINS.length) return true;
@@ -241,30 +262,28 @@ async function fetchFirmNews(firmName) {
     const seen = new Set();
     const collected = [];
 
-    const signalQueries = buildFirmSignalQueries(firmName);
+    const primaryParams = buildFallbackQueryParams(firmName);
+    const { items: primaryItems, cxUsed: primaryCx } = await fetchWithCseFallback(primaryParams, {
+        preferStrict: true
+    });
+    const primaryArticles = normalizeAndTagItems(primaryItems, firmName, primaryCx);
 
-    for (const [signal, params] of signalQueries) {
+    for (const article of primaryArticles) {
+        if (seen.has(article.id)) continue;
+        seen.add(article.id);
+        collected.push(article);
         if (collected.length >= limit) break;
-
-        const { items, cxUsed } = await fetchWithCseFallback(params, { preferStrict: true });
-        const normalizedItems = normalizeSignalItems(items, firmName, signal, cxUsed);
-
-        for (const article of normalizedItems) {
-            if (seen.has(article.id)) continue;
-            seen.add(article.id);
-            collected.push(article);
-            if (collected.length >= limit) break;
-        }
     }
 
-    if (collected.length < limit) {
-        const fallbackParams = buildFallbackQueryParams(firmName);
-        const { items, cxUsed } = await fetchWithCseFallback(fallbackParams, {
-            preferStrict: collected.length === 0
-        });
-        const normalizedItems = normalizeSignalItems(items, firmName, 'general', cxUsed);
+    if (!collected.length) {
+        const secondaryParams = buildOpenQueryParams(firmName);
+        const { items: secondaryItems, cxUsed: secondaryCx } = await fetchWithCseFallback(
+            secondaryParams,
+            { preferStrict: false }
+        );
+        const secondaryArticles = normalizeAndTagItems(secondaryItems, firmName, secondaryCx);
 
-        for (const article of normalizedItems) {
+        for (const article of secondaryArticles) {
             if (seen.has(article.id)) continue;
             seen.add(article.id);
             collected.push(article);
@@ -403,6 +422,7 @@ export async function fetchNews(forceRefresh = false) {
     const totalFirms = NEWS_FIRM_NAMES.length;
     const snapshot = await loadSnapshot();
     let jobState = await loadJobState();
+    const snapshotFresh = isSnapshotFreshEnough(snapshot);
 
     if (!forceRefresh) {
         let status = 'idle';
@@ -414,6 +434,20 @@ export async function fetchNews(forceRefresh = false) {
             status = 'running';
         }
         return buildResponse(snapshot || {}, jobState, status);
+    }
+
+    if (snapshotFresh && (!jobState || jobState.completedAt)) {
+        const status =
+            snapshot?.jobStatus && snapshot.jobStatus !== 'running'
+                ? snapshot.jobStatus
+                : 'complete';
+        const responseSnapshot = snapshot
+            ? {
+                  ...snapshot,
+                  jobStatus: status
+              }
+            : { jobStatus: status, items: [] };
+        return buildResponse(responseSnapshot, jobState?.completedAt ? jobState : null, status);
     }
 
     const nowIso = new Date().toISOString();
@@ -619,16 +653,6 @@ export async function clearNewsData() {
     return buildResponse(emptySnapshot, jobState, status);
 }
 
-function buildFirmSignalQueries(firmName) {
-    const entries = [];
-    for (const signal of SIGNAL_PRIORITY) {
-        const builder = NEWS_QUERY_BUILDERS[signal];
-        if (!builder) continue;
-        entries.push([signal, builder(firmName)]);
-    }
-    return entries;
-}
-
 function buildFallbackQueryParams(firmName) {
     const baseQuery = `${buildQuery(firmName)}${ALLOWLIST_QUERY_SUFFIX}`;
     return {
@@ -644,16 +668,28 @@ function buildFallbackQueryParams(firmName) {
     };
 }
 
-function normalizeSignalItems(items, firmName, signal, cxUsed) {
+function buildOpenQueryParams(firmName) {
+    return {
+        q: buildQuery(firmName),
+        exactTerms: firmName,
+        excludeTerms: NEGATIVE_TERMS_VALUE,
+        num: MAX_RESULTS_PER_QUERY,
+        dateRestrict: NEWS_DATE_RESTRICT,
+        sort: NEWS_SORT,
+        gl: NEWS_GL,
+        hl: NEWS_HL,
+        safe: NEWS_SAFE
+    };
+}
+
+function normalizeAndTagItems(items, firmName, cxUsed) {
     const normalized = [];
     for (const item of items) {
         const article = normalizeSearchItem(item, firmName);
         if (!article) continue;
 
         const tags = new Set(article.tags || []);
-        if (signal) {
-            tags.add(signal);
-        }
+        deriveSignalTags(article, tags);
 
         if (
             GOOGLE_CSE_ID_STRICT &&
@@ -668,6 +704,33 @@ function normalizeSignalItems(items, firmName, signal, cxUsed) {
         normalized.push(article);
     }
     return normalized;
+}
+
+function deriveSignalTags(article, tags) {
+    const text = [
+        article.headline || '',
+        article.summary || '',
+        article.source || ''
+    ]
+        .join(' ')
+        .toLowerCase();
+
+    for (const [signal, keywords] of Object.entries(SIGNAL_KEYWORDS)) {
+        if (keywords.some(keyword => text.includes(keyword))) {
+            tags.add(signal);
+        }
+    }
+}
+
+function isSnapshotFreshEnough(snapshot) {
+    if (!REFRESH_COOLDOWN_MS || !snapshot?.lastUpdated) {
+        return false;
+    }
+    const last = new Date(snapshot.lastUpdated);
+    if (Number.isNaN(last.getTime())) {
+        return false;
+    }
+    return Date.now() - last.getTime() < REFRESH_COOLDOWN_MS;
 }
 
 async function fetchWithCseFallback(params, { preferStrict = true } = {}) {
